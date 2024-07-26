@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:users/driver_screens/login_screen.dart';
+import 'package:users/driver_screens/register_screen.dart';
+import 'driver_screens/vehicle_info_screen.dart';
 import 'user_screens/forgot_password_screen.dart';
+import 'user_screens/home_screen.dart';
 import 'user_screens/login_screen.dart';
 import 'user_screens/main_screen.dart';
 import 'user_screens/register_screen.dart';
@@ -31,7 +35,7 @@ class MyApp extends StatelessWidget {
           themeMode: ThemeMode.system,
           theme: MyThemes.lightTheme,
           darkTheme: MyThemes.darkTheme,
-          home: SplashScreen(),
+          home: const UserMainScreen(),
         )
     );
   }

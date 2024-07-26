@@ -1,4 +1,4 @@
-import 'car_info_screen.dart';
+import 'vehicle_info_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/material.dart';
@@ -11,18 +11,23 @@ class EmailVerificationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool darkTheme = MediaQuery.of(context).platformBrightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Verify Your Email'),
+        title: Text('Verify Your Email',style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: darkTheme ? Colors.black : Colors.blue,
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
-              'A verification email has been sent to your email address. Please check your inbox and click on the verification link.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16),
+            Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: Text(
+                'A verification email has been sent to your email address. Please check your inbox and click on the verification link.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
             ),
             SizedBox(height: 20),
             ElevatedButton(
@@ -51,7 +56,7 @@ class EmailVerificationScreen extends StatelessWidget {
                       msg: "Please verify your email first.");
                 }
               },
-              child: Text('Continue'),
+              child: Text('Continue Registration'),
             ),
           ],
         ),

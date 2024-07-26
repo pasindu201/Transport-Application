@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:users/user_screens/login_screen.dart';
 import '../user_global/global.dart';
 import 'email_verification_screen.dart';
+import 'social_login.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -78,20 +79,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
+        appBar: AppBar(
+          title: Text("Costormer Registration",style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
+          elevation: 5,
+          centerTitle: true,
+          backgroundColor: darkTheme ? Colors.black : Colors.blue,
+          iconTheme: IconThemeData(
+            color: darkTheme ? Colors.amber.shade400 : Colors.white,
+          ),
+        ),
         body: ListView(
           padding: EdgeInsets.all(0),
           children: [
             Column(
               children: [
-                Image.asset(darkTheme ? "images/city_dark.jpg" : "images/city.jpg"),
-                SizedBox(height: 20,),
-                Text(
-                  "Register",
-                  style: TextStyle(
-                    color: darkTheme ? Colors.amber.shade400 : Colors.blue,
-                    fontSize: 25,
-                    fontWeight: FontWeight.bold,
-                  ),
+                SizedBox(height: 30),
+                CircleAvatar(
+                  radius: 50,
+                  backgroundImage: AssetImage('images/profileicon.jpg'), 
+                ),
+                Padding(padding: const EdgeInsets.all(10.0),
+                child: Text("Create your account", style: TextStyle(color: darkTheme ? Colors.amber.shade400 : Colors.black, fontSize: 20, fontWeight: FontWeight.bold),)
                 ),
                 Padding(
                   padding: const EdgeInsets.all(10.0),
@@ -225,6 +233,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           onPressed: _submit,
                           child: Text("Register", style: TextStyle(fontSize: 20)),
                         ),
+                        SizedBox(height: 5),
+                        const SocialLogin(),
                         SizedBox(height: 10,),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,

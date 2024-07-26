@@ -23,14 +23,14 @@ import 'package:firebase_database/firebase_database.dart';
 
 import '../user_widgets/pay_fare_amount_dialog.dart';
 
-class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+class UserMainScreen extends StatefulWidget {
+  const UserMainScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<UserMainScreen> createState() => _UserMainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _UserMainScreenState extends State<UserMainScreen> {
   LatLng? pickLocation;
   loc.Location location = loc.Location();
 

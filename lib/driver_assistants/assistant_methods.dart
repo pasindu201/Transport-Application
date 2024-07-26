@@ -6,7 +6,6 @@ import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:geolocator/geolocator.dart';
 import '../driver_models/directions.dart';
 import '../driver_infoHandler/app_info.dart';
-import '../driver_models/direction_details_info.dart';
 import '../driver_models/user_model.dart';
 import 'package:provider/provider.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';

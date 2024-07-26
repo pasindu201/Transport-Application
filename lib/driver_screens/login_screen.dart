@@ -53,7 +53,7 @@ class _DriverLoginScreenState extends State<DriverLoginScreen> {
           await AssistantMethods.readCurrentOnlineUserInfo();
           await Fluttertoast.showToast(msg: "Successfully Logged In");
           Navigator.push(
-              context, MaterialPageRoute(builder: (context) => MainScreen()));
+              context, MaterialPageRoute(builder: (context) => DriverMainScreen()));
         } else {
           await Fluttertoast.showToast(msg: "No record exist with this email");
           await FirebaseAuth.instance.signOut();
@@ -77,20 +77,29 @@ class _DriverLoginScreenState extends State<DriverLoginScreen> {
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
+        appBar: AppBar(
+          title: Text("Driver Login",style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
+          elevation: 5,
+          centerTitle: true,
+          backgroundColor: darkTheme ? Colors.black : Colors.blue,
+          iconTheme: IconThemeData(
+            color: darkTheme ? Colors.amber.shade400 : Colors.white,
+          ),
+        ),
         body: ListView(
           padding: EdgeInsets.all(0),
           children: [
             Column(
               children: [
                 Image.asset(
-                    darkTheme ? "images/city_dark.jpg" : "images/city.jpg"),
+                    darkTheme ? "images/delivery.jpeg" : "images/delivery.jpeg"),
                 SizedBox(
                   height: 20,
                 ),
                 Text(
                   "Login",
                   style: TextStyle(
-                    color: darkTheme ? Colors.amber.shade400 : Colors.blue,
+                    color: darkTheme ? Colors.amber.shade400 : Colors.black,
                     fontSize: 25,
                     fontWeight: FontWeight.bold,
                   ),
@@ -202,7 +211,7 @@ class _DriverLoginScreenState extends State<DriverLoginScreen> {
                             ),
                           ),
                           onPressed: _submit,
-                          child: Text("Login", style: TextStyle(fontSize: 20)),
+                          child: Text("Login", style: TextStyle(fontSize: 20, color: Colors.white)),
                         ),
                         SizedBox(
                           height: 10,

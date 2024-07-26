@@ -5,6 +5,7 @@ import '../user_global/global.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
 import 'forgot_password_screen.dart';
+import 'home_screen.dart';
 import 'register_screen.dart';
 import '../user_assistants/assistant_methods.dart';
 import 'main_screen.dart';
@@ -40,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
         currentUser = userCredential.user;
         await AssistantMethods.readCurrentOnlineUserInfo();
         Fluttertoast.showToast(msg: "Successfully Logged in");
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => MainScreen()));
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => UserHomePage()));
       } catch (error) {
         Fluttertoast.showToast(msg: "Error occurred: \n $error");
       }

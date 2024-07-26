@@ -34,6 +34,14 @@ class UserSelection extends StatelessWidget {
                     'Shipping',
                     style: TextStyle(color: Colors.white, fontSize: 48),
                   ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      description_1,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ),
                 ],
               ),
             ),

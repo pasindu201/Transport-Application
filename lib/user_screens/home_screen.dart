@@ -1,18 +1,16 @@
-import '../driver_global/global.dart';
-import '../splash_screen/splash_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../driver_tab_pages/home.dart';
+import '../user_tab_pages/home.dart';
 
-class DriverMainScreen extends StatefulWidget {
-  const DriverMainScreen({super.key});
+class UserHomePage extends StatefulWidget {
+  const UserHomePage({super.key});
 
   @override
-  State<DriverMainScreen> createState() => _DriverMainScreenState();
+  State<UserHomePage> createState() => _UserHomePageState();
 }
 
-class _DriverMainScreenState extends State<DriverMainScreen> with SingleTickerProviderStateMixin {
+class _UserHomePageState extends State<UserHomePage> with SingleTickerProviderStateMixin {
 
   TabController? tabController;
   int selectedIndex = 0;
@@ -42,7 +40,7 @@ class _DriverMainScreenState extends State<DriverMainScreen> with SingleTickerPr
         physics: NeverScrollableScrollPhysics(),
         controller: tabController,
         children: [
-          HomeTabPage(),
+          Home(),
           // EarningsTabPage(),
           // RatingsTabPage(),
           // ProfileTabPage()
@@ -52,8 +50,8 @@ class _DriverMainScreenState extends State<DriverMainScreen> with SingleTickerPr
       bottomNavigationBar: BottomNavigationBar(
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.credit_card), label: "Earnings"),
-          BottomNavigationBarItem(icon: Icon(Icons.star), label: "Ratings"),
+          BottomNavigationBarItem(icon: Icon(Icons.credit_card), label: "Activity"),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: "Notifications"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Account"),
         ],
         unselectedItemColor: darkTheme? Colors.black45 : Colors.white54,

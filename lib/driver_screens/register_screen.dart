@@ -1,6 +1,6 @@
 import 'package:users/driver_screens/login_screen.dart';
 
-import 'car_info_screen.dart';
+import 'vehicle_info_screen.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
@@ -11,6 +11,7 @@ import '../driver_global/global.dart';
 
 import 'email_verification_screen.dart';
 import 'main_screen.dart';
+import 'social_login.dart';
 
 class DriverRegisterScreen extends StatefulWidget {
   const DriverRegisterScreen({super.key});
@@ -80,23 +81,27 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
+        appBar: AppBar(
+          title: Text("Driver Registration",style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
+          elevation: 5,
+          centerTitle: true,
+          backgroundColor: darkTheme ? Colors.black : Colors.blue,
+          iconTheme: IconThemeData(
+            color: darkTheme ? Colors.amber.shade400 : Colors.white,
+          ),
+        ),
         body: ListView(
           padding: EdgeInsets.all(0),
           children: [
             Column(
               children: [
-                Image.asset(
-                    darkTheme ? "images/city_dark.jpg" : "images/city.jpg"),
-                SizedBox(
-                  height: 20,
+                SizedBox(height: 30),
+                CircleAvatar(
+                  radius: 50,
+                  backgroundImage: AssetImage('images/profileicon.jpg'), 
                 ),
-                Text(
-                  "Register",
-                  style: TextStyle(
-                    color: darkTheme ? Colors.amber.shade400 : Colors.blue,
-                    fontSize: 25,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Padding(padding: const EdgeInsets.all(10.0),
+                child: Text("Create your account", style: TextStyle(color: darkTheme ? Colors.amber.shade400 : Colors.black, fontSize: 20, fontWeight: FontWeight.bold),)
                 ),
                 Padding(
                   padding: const EdgeInsets.all(10.0),
@@ -249,21 +254,22 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
                           },
                         ),
                         SizedBox(
-                          height: 10,
+                          height: 15,
                         ),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor:
                                 darkTheme ? Colors.grey : Colors.blue,
-                            elevation: 0,
+                            elevation: 5,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(40),
                             ),
                           ),
                           onPressed: _submit,
-                          child:
-                              Text("Register", style: TextStyle(fontSize: 20)),
+                          child: Text("Register", style: TextStyle(fontSize: 20, color: Colors.white)),
                         ),
+                        SizedBox(height: 10),
+                        const SocialLogin(),
                         SizedBox(
                           height: 10,
                         ),

@@ -18,7 +18,7 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
   final carNumberTextEditingController = TextEditingController();
   final carColorTextEditingController = TextEditingController();
 
-  List<String> carTypes = ["Car", "CNG", "bike"];
+  List<String> carTypes = ["Car", "Van", "Lorry", "Three Wheel", "Bike"];
   String? selectedCarType;
 
   final _formKey = GlobalKey<FormState>();
@@ -50,18 +50,24 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
+        appBar: AppBar(
+          title: Text("Vehicle Details",style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
+          elevation: 50,
+          centerTitle: true,
+          backgroundColor: darkTheme ? Colors.black : Colors.blue,
+        ),
         body: ListView(
           padding: EdgeInsets.all(0),
           children: [
             Column(
               children: [
-                Image.asset(darkTheme ? "images/city_dark.jpg" : "images/city.jpg"),
+                Image.asset(darkTheme ? "images/delivery.jpeg" : "images/delivery.jpeg"),
 
-                SizedBox(height: 20,),
+                SizedBox(height: 15,),
 
-                Text("Add car details",
+                Text("Add Vehicle details",
                   style: TextStyle(
-                    color: darkTheme? Colors.amber.shade400 : Colors.blue,
+                    color: darkTheme? Colors.amber.shade400 : Colors.black,
                     fontSize: 25,
                     fontWeight: FontWeight.bold,
                   ),
@@ -80,7 +86,7 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
                             LengthLimitingTextInputFormatter(50)
                           ],
                           decoration: InputDecoration(
-                            hintText: "Car Model",
+                            hintText: "Vehicle Model... ex:- Toyota Car",
                             hintStyle: TextStyle(color: Colors.grey),
                             filled: true,
                             fillColor: darkTheme ? Colors.black45 : Colors.grey.shade200,
@@ -98,14 +104,14 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
                           }),
                         ),
 
-                        SizedBox(height: 20,),
+                        SizedBox(height: 10,),
 
                         TextFormField(
                           inputFormatters: [
                             LengthLimitingTextInputFormatter(50)
                           ],
                           decoration: InputDecoration(
-                            hintText: "Car Number",
+                            hintText: "Vehicle Number",
                             hintStyle: TextStyle(color: Colors.grey),
                             filled: true,
                             fillColor: darkTheme ? Colors.black45 : Colors.grey.shade200,
@@ -123,14 +129,14 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
                           }),
                         ),
 
-                        SizedBox(height: 20,),
+                        SizedBox(height: 10,),
 
                         TextFormField(
                           inputFormatters: [
                             LengthLimitingTextInputFormatter(50)
                           ],
                           decoration: InputDecoration(
-                            hintText: "Car Color",
+                            hintText: "Vehicle Color",
                             hintStyle: TextStyle(color: Colors.grey),
                             filled: true,
                             fillColor: darkTheme ? Colors.black45 : Colors.grey.shade200,
@@ -148,7 +154,7 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
                           }),
                         ),
 
-                        SizedBox(height: 20,),
+                        SizedBox(height: 10,),
 
                         DropdownButtonFormField(
                           decoration: InputDecoration(
@@ -179,7 +185,7 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
                             }
                         ),
 
-                        SizedBox(height: 20,),
+                        SizedBox(height: 10,),
 
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
@@ -190,7 +196,7 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
                             ),
                           ),
                           onPressed: _submit,
-                          child: Text("Confirm", style: TextStyle(fontSize: 20)),
+                          child: Text("Confirm", style: TextStyle(fontSize: 20, color: Colors.white)),
                         ),
 
                         SizedBox(height: 10,),

@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../driver_screens/main_screen.dart';
 import '../selection_screen.dart';
 import '../user_assistants/assistant_methods.dart';
 import '../user_global/global.dart';
 import '../user_screens/main_screen.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -21,7 +23,32 @@ class _SplashScreenState extends State<SplashScreen> {
     Timer(const Duration(seconds: 3), () async {
       if (firebaseAuth.currentUser != null) {
         await AssistantMethods.readCurrentOnlineUserInfo();
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => const MainScreen()));
+
+        String userId = firebaseAuth.currentUser!.uid;
+
+        DatabaseReference userRef = FirebaseDatabase.instance.ref().child("users").child(userId);
+        DatabaseReference driverRef = FirebaseDatabase.instance.ref().child("drivers").child(userId);
+
+        bool isUser = false;
+        bool isDriver = false;
+
+        DataSnapshot userSnapshot = await userRef.get();
+        DataSnapshot driverSnapshot = await driverRef.get();
+
+        if (userSnapshot.exists) {
+          isUser = true;
+        }
+        
+        if (driverSnapshot.exists) {
+          isDriver = true;
+        }
+        if (isUser) {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => const UserMainScreen()));
+        } else if (isDriver) {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => const DriverMainScreen()));
+        } else {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => const UserSelection()));
+        }
       } else {
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => const UserSelection()));
       }
