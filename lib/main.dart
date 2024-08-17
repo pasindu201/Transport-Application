@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:users/driver_screens/login_screen.dart';
 import 'package:users/driver_screens/register_screen.dart';
+import 'package:users/driver_tab_pages/home.dart';
+import 'driver_screens/trip_started.dart';
 import 'driver_screens/vehicle_info_screen.dart';
 import 'user_screens/forgot_password_screen.dart';
 import 'user_screens/home_screen.dart';
@@ -13,7 +15,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'user_widgets/pay_fare_amount_dialog.dart';
 import 'user_infoHandler/app_info.dart';
 import 'package:provider/provider.dart';
-
+import 'driver_screens/new_trip_screen.dart';
 import 'user_screens/search_places-screen.dart';
 
 Future<void> main() async {
@@ -35,7 +37,7 @@ class MyApp extends StatelessWidget {
           themeMode: ThemeMode.system,
           theme: MyThemes.lightTheme,
           darkTheme: MyThemes.darkTheme,
-          home: const UserMainScreen(),
+          home: TripStarted(),
         )
     );
   }

@@ -1,3 +1,5 @@
+import 'package:flutter/widgets.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'request_assistant.dart';
 import '../user_global/global.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -83,20 +85,20 @@ class AssistantMethods {
     final serviceAccountJson = {
       "type": "service_account",
       "project_id": "trippo-ef847",
-      "private_key_id": "2935a9e1f2c4e1e4bfe14c96c1d87a46d3b90e4a",
-      "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDe9IE5Nv8hIy0r\n68AToXVsLLPjTnWXVW0aw3UK9YUQ6u63zwI2/iLqjNFOFshgKko3sExv81mzPghL\nBE9lOEpzDfVYHbA5out4xvuPFLwYTSsGaOgOsv1sHQQXXWzMfUbyVutfIdtBmXCJ\nZDwS+awykoI5duDYDk81uyJ3ktjh1dtqIm1USeUcAs0retg4s1wWRHsAr/PiVVPo\n5gzUwzOUFHmuF0a88QzfboC890Zkx8x/ABiPir7yydABEnEKjsaH9nzrIOiUmcze\nSiTpo3ItSkPnsxCn9iQCa4EQfKK89EcTpWpax1u7KJM9cFhLCozM/cNFCdo1F1ln\n1vapq7l3AgMBAAECggEAAl8FVM9x7S9LlrD+LPdFoW3kR+GYvJBLBcLYZtJvpNtq\nyIeqFV2kj2wJ+dOiM+ufOHJmjbY/2Pkq62lTUtdDa2/VkSdXrXU/Hdy35jCpQ3Tm\npT3OYgGjUlgIqBr1QkN+0qr7+9oHU+5G1R88yFLhcvQ98FCEWaflTcP8vNrR9azk\ngBa8UtqdegOceKjpcbJsxDuWWEVI7otxJXIsJmMiKPfCGjdvcotJ9qALGgN6fxOM\nMfl/pj/KPUjQAlIX1Aqb4j65a/Her4q4UP/uvgSIoV8ZQaeIBqAEd34pJPscS+dv\n1iByJC60ZjFEFUM30JOxPPpBhnn5gZ8DJ6su4w2/YQKBgQD1h6Z11PPywJ4TkeRP\noNv7Jo1sbke3YG7djdQrLDwbhswAj967uhq0S2mD7tFeWrcLRP+a4/RuatfvDdnF\nS0bQlM3euzZ2e5AYTMzoYZsqLAW4bdMUVX8P8d/uvBy43PHNxIS/9r4/u8Bbk2I/\nfntNc77bZU0Lq0YtUMwoqw7XEQKBgQDodmovedlQhN1ic/vd8pwTMm59LYnz2M9v\nySOo4+yhv3KvfGqeHh0L2LMuvE4e7cSgWJlrxAi6pmkjv2Vs5Dd10eEefgqJFfNa\nUX1UymkB4z/oH5mVbIbWikElMWN8DOqyCCMjXXsfV0/gDjbWZSpPoWuHviFzO2Tn\nhjTWuPZYBwKBgFk9cJcrS29T6yCZyi3W/Z2PKZ/bhV11Q1Zrkk4OydoHaGZb5Ey/\nG62kKzm0t4xf1F/YOD8H03O+ibVth1VaQubU7u6hhO4TgxAR+fgMYeU2Eu4xnKKr\nYH9fHlEbNiVKyOhNISLUf9mSWBvwuajyQ8am5xu++f3fxqX50/qEEeTBAoGAF9Jq\nt0rJVlMHTNuN6ATAscbtQ66zAGYre80k9l3FFh5EZm9dja6QU3J1ikiJyOmcyMHL\nlxuTuWzsQVmPz0Tj2hMT+sf31GyHb64CJfpIIIVlOyhh2MoyVzH70w/ongHE21Gy\nKCGgSGnuKYvLWtUrLNXh6xs02lYv1PoP2CFEPWkCgYEA5ZFqYxEqND/BI9yf98kR\n8TDivpvDL7o0F4gZsYLyEmAqjeLd2WZ6HWbYFU3I0naFqmsXh8n/R8OSbL3sG6vQ\nK4/SskVOhjj+v8q8s8aVuY5JYH/8zL0s0M8oZODeS96ZW7spAJmUxP4HVsrbIyMR\nw25qfSnTFrPFI3HZ0xfoGWQ=\n-----END PRIVATE KEY-----\n",
-      "client_email": "trippo-pasindu@trippo-ef847.iam.gserviceaccount.com",
-      "client_id": "112192815867132864589",
+      "private_key_id": "16b9c8855c34ded907587bdcc005cabb8fcde022",
+      "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDLyAXE2PldMs0N\ng+pP4Py/g8ZgdIAa4RVYFsmlA/sd9nafBacaF56OaQBmFI+ggwysr36ZewhPakQQ\n9TuhIN/9B1evqfAMWhfOkdVx7YwN6iS4SxGHlotZIzKP/5ShB9PE5flFGH85sLl0\ngzBcaDuHywQvWnvh7/h5a8v4ESy7tgFNI3/pkzoa/psXi4FSrKjHS7Sl/ejy867E\ncExEfUNB2iZGPJe+riMa0GQFUzE63rvumQvPKH1k38tRRgy2BC3NY58YHo5ad4Oo\nNt/qLsCJuiEY9oKJgSB8D2NSeJHhgYz6U4HqPKGRyfQOX8f5BV3Dzo3SX62BJAct\ngbYqJkZbAgMBAAECggEAEe3rOrAVH0hBIV90u2AiF3RFJ9G9lF/Zwb0ziFN1gePg\nTkqFiCFW39RzkV0IFrPLvC/ZVYYCgQDqXzbsbwIA+HbFFh1qE57OTxb8BCubMdLi\n4Id+UdiC3INhHKlR5D8s4zs8DNfEbd4o2wxQh3jbmq2ClJYDUKmNSkWb6xtmZ6zK\nGYLOgG45oUPLrUTDPhUW0r7NWHtBiLoSRxHpMJTp24WuEsobdCKIaLY5HtUVCrxa\nF86aoxbtOZGU8roKxnUxqXRw8dK3PClN3PcLD4Yj0GYSx5AiU1dOQ2S9+CAXgRly\nJb8eMlM0QP8V8TW3AzlT6pDvErNw2bmWJK/M4sYf/QKBgQDttBwApdW2uGOrbqwj\nVrc7TAV57axMb/oSgUC6G75S7nJblQ3tRTarAyLeMF0aONZUpdE6ONmELPQrMT3n\nq/Xia3/ERr2dAqIpmpqTjv0eX9CXJrVjb2LSKK1ojdV4DgIBTzYLT5OleInbXPUB\nFgfN24QM/dGTjp4nvzXi/253zQKBgQDbd3vzHX9AUvdMlF0koVohpszI9IJUMnx0\njtRtZhruj2f8wEEhsvQxYSnktKOEZxHy8UmlKNDC5iZeh6AC+r2CS3Un0AZc8ckN\ngD15BDvOuqa0yISJJw3jpz2pXWd4VrVG7vbIBAxISEBq2ANjiVhr7atx84sjp9Ap\nfNEFENG+xwKBgFEmmiDGfO3CiZRvVilCY4/E5mG3+Iin+fHzWouvCQz7BuOpQXXt\nmTpM+cxtKnvXR6Tib0m3OttbFYjhaMb8+BbyqE3z8Kv3yDD37SnPOS7zexz/RBHM\nZypkZL87HNO9xIV563N1GWz2d+oCFErooIVxGeXtiW0c1XWwW89BcQ9JAoGAFM1q\njkzJdwtmLXgSrBovNOlel921TM3MRjATqpr3Co3FSYvfoJYZ12RiWC9XIIG0jdaZ\nKHKJ9y9hi6xHWoDx3ZvRawio0b6JVCJHsWTZVmsSyigHiAiPpHiBu8ACwsFVRXf5\nJFRd5awTjw0SpSirnO9WROLU2XhantQZ6+UAPJkCgYByl0TuK6jb9aq264fwfppB\n91L1uQmgar99f6EeWkESGAr6PpEfyKk52H0tDAWtwUi/DhPRQ/Ly+OZf9buo0pRj\n7vod4kByicHcNeMTpGKBoloC6u1y+WLquCg54at6m2lIyH386+HF0hHI/lBprBmY\nyYRTEP0JHzU5rkRuHQjpoA==\n-----END PRIVATE KEY-----\n",
+      "client_email": "trippo-pasindu-sandeep@trippo-ef847.iam.gserviceaccount.com",
+      "client_id": "113279006670683948814",
       "auth_uri": "https://accounts.google.com/o/oauth2/auth",
       "token_uri": "https://oauth2.googleapis.com/token",
       "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-      "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/trippo-pasindu%40trippo-ef847.iam.gserviceaccount.com",
+      "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/trippo-pasindu-sandeep%40trippo-ef847.iam.gserviceaccount.com",
       "universe_domain": "googleapis.com"
     };
 
     List<String> scopes = [
-      "https://www.googleapis.com/auth/firebase.messaging",
-      "https://www.googleapis.com/auth/firebase.email",
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/firebase.messaging",  
       "https://www.googleapis.com/auth/firebase.database"
     ];
 
@@ -116,48 +118,54 @@ class AssistantMethods {
     return credentials.accessToken.data;
   }
 
-  static Future<void> sendNotificationToDriversNow(String deviceRegistrationToken, String userRideRequestId, context) async {
-    String accessToken = await getAccessToken();
-    String destinationAddress = userDropOffAddress;
+  static Future<void> sendNotificationToSelectedDriver(String deviceToken, BuildContext context, String tripId) async {
+    // Fetching necessary details
+    String dropOffLocationLat = Provider.of<AppInfo>(context, listen: false).userDropOffLocation!.locationLatitude.toString();
+    String dropOffLocationLng = Provider.of<AppInfo>(context, listen: false).userDropOffLocation!.locationLongitude.toString();
+    String pickUpLocationLat = Provider.of<AppInfo>(context, listen: false).userPickUpLocation!.locationLatitude.toString();
+    String pickUpLocationLng = Provider.of<AppInfo>(context, listen: false).userPickUpLocation!.locationLongitude.toString();
+    
+    // Get the FCM server key from your function
+    final String serverKey = await getAccessToken();
 
-    Map<String, String> headerNotification = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-    };
+    // FCM API endpoint
+    String endPointFirebaseCloudMessaging = "https://fcm.googleapis.com/v1/projects/trippo-ef847/messages:send";
 
-    Map bodyNotification = {
-      "body": "Destination Address: $destinationAddress",
-      "title": "New Ride Request"
-    };
-
-    Map dataMap = {
-      "click_action": "FLUTTER_NOTIFICATION_CLICK",
-      "id": "1",
-      "status": "done",
-      "userRideRequestId": userRideRequestId
-    };
-
-    Map officialNotificationFormat = {
-      "notification": bodyNotification,
-      "priority": "high",
-      "data": dataMap,
-      "to": deviceRegistrationToken
-    };
-
-    try {
-      var responseNotification = await http.post(
-        Uri.parse("https://fcm.googleapis.com/fcm/send"),
-        headers: headerNotification,
-        body: jsonEncode(officialNotificationFormat)
-      );
-
-      if (responseNotification.statusCode == 200) {
-        print("Notification sent successfully.");
-      } else {
-        print("Failed to send notification: ${responseNotification.body}");
+    final Map<String, dynamic> message = {
+      "message": {
+        "token":deviceToken,
+        "notification": {
+          "title": "Notification form ${userModelCurrentinfo!.name}",
+        },
+        "data":{
+          "tripID": tripId,
+          "name": userModelCurrentinfo!.name,
+          "pickUpLocationLat": pickUpLocationLat,
+          "pickUpLocationLng": pickUpLocationLng,
+          "dropOffLocationLat": dropOffLocationLat,
+          "dropOffLocationLng": dropOffLocationLng,
+          "userPhone": userModelCurrentinfo!.phone,
+          "originAddress": Provider.of<AppInfo>(context, listen: false).userPickUpLocation!.locationName,
+          "destinationAddress": Provider.of<AppInfo>(context, listen: false).userDropOffLocation!.locationName
+        }
       }
-    } catch (e) {
-      print("Error sending notification: $e");
+    };
+
+    // Sending the notification via HTTP POST
+    final http.Response response = await http.post(
+      Uri.parse(endPointFirebaseCloudMessaging),
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $serverKey'
+      },
+      body: jsonEncode(message),  
+    );
+
+    // Handling the response
+    if (response.statusCode == 200) {
+      Fluttertoast.showToast(msg: "Notification sent successfully to driver");
+    } else {
+      Fluttertoast.showToast(msg: "Failed to send notification to driver.");
     }
   }
 }

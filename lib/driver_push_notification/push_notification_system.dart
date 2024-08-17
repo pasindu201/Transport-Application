@@ -1,3 +1,4 @@
+import 'package:users/driver_push_notification/notification.dart';
 import '../driver_global/global.dart';
 import '../driver_models/user_ride_request_information.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -6,33 +7,38 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'notification_dialog_box.dart';
-import 'package:assets_audio_player/assets_audio_player.dart';
 
 class PushNotificationSystem{
   FirebaseMessaging messaging = FirebaseMessaging.instance;
+  String userRideRequestId = "";
 
   Future initializeCloudMessaging(BuildContext context) async {
     //1.Terminated.
     //When the app is terminated and the user taps on the push notification.
     FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
-      if (message != null) {
-        readUserRideRequestInformation(message.data["rideRequestId"], context);
+      userRideRequestId = message!.data["tripID"];
+      Fluttertoast.showToast(msg: "Notification opened in background");
+      if (userRideRequestId != "") {
+        readUserRideRequestInformation(userRideRequestId, context);
       }
     });
 
     //2.Foreground.
     //When the app is in the foreground and the user receives a push notification.
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if (message.notification != null) {
-        readUserRideRequestInformation(message.data["rideRequestId"], context);
+      userRideRequestId = message!.data["tripID"];
+      Fluttertoast.showToast(msg: "Notification opened in background");
+      if (userRideRequestId != "") {
+        readUserRideRequestInformation(userRideRequestId, context);
       }
     });
 
     //3.background.
     //When the app is in the background and the user receives a push notification.
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      readUserRideRequestInformation(message.data["rideRequestId"], context);
+      userRideRequestId = message!.data["tripID"];
+      Fluttertoast.showToast(msg: "Notification opened in background");
+      readUserRideRequestInformation(userRideRequestId, context);
     });
   }
 
@@ -41,8 +47,6 @@ class PushNotificationSystem{
       if(event.snapshot.value == "waiting" || event.snapshot.value == firebaseAuth.currentUser!.uid){
         FirebaseDatabase.instance.ref().child("All Ride Requests").child(userRideRequestId).once().then((snapData){
           if(snapData.snapshot.value != null){
-            audioPlayer.open(Audio("music/music_notification.mp3"));
-            audioPlayer.play();
 
             double originLat = double.parse((snapData.snapshot.value! as Map)["origin"]["latitude"]);
             double originLng = double.parse((snapData.snapshot.value! as Map)["origin"]["longitude"]);
@@ -67,12 +71,16 @@ class PushNotificationSystem{
 
             userRideRequestDetails.rideRequestId = rideRequestId;
 
-            showDialog(
-              context: context, 
-              builder: (BuildContext context) => NotificationDialogBox(
-                userRideRequestInformation: userRideRequestDetails,
-              )
-            );
+            showSimpleDialog(userRideRequestDetails, context);
+
+            // showDialog(
+            //   context: context,
+            //   builder: (BuildContext context) {
+            //     return NotificationDialogBox(
+            //       userRideRequestInformation: userRideRequestDetails,
+            //     );
+            //   },
+            // );
           }
           else {
             Fluttertoast.showToast(msg: "This Ride request do not exist");

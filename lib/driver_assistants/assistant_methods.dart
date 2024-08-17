@@ -79,5 +79,4 @@ class AssistantMethods {
     Geofire.removeLocation(firebaseAuth.currentUser!.uid);
   }
 
-
 }

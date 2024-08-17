@@ -58,12 +58,25 @@ class _LoginScreenState extends State<LoginScreen> {
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
+        appBar: AppBar(
+          title: Text("User Login",style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
+          elevation: 5,
+          centerTitle: true,
+          backgroundColor: darkTheme ? Colors.black : Colors.blue,
+          iconTheme: IconThemeData(
+            color: darkTheme ? Colors.amber.shade400 : Colors.white,
+          ),
+        ),
         body: ListView(
           padding: EdgeInsets.all(0),
           children: [
             Column(
               children: [
-                Image.asset(darkTheme ? "images/city_dark.jpg" : "images/city.jpg"),
+                SizedBox(height: 30),
+                CircleAvatar(
+                  radius: 50,
+                  backgroundImage: AssetImage('images/profileicon.jpg'), 
+                ),
                 SizedBox(height: 20,),
                 Text(
                   "Login",
