@@ -3,35 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:firebase_database/firebase_database.dart';
 import './../driver_models/user_ride_request_information.dart';
 import './../driver_global/map_key.dart';
-import 'package:firebase_database/firebase_database.dart';
 
-class DriverLocationService {
-  final DatabaseReference _databaseReference = FirebaseDatabase.instance.reference();
-
-  void updateDriverLocation(String driverId, Position position) {
-    _databaseReference.child('arriving_drivers').child(driverId).update({
-      'latitude': position.latitude,
-      'longitude': position.longitude,
-    }).then((_) {
-      print('Driver location updated successfully');
-    }).catchError((error) {
-      print('Failed to update driver location: $error');
-    });
-  }
-}
-
-class TripStarted extends StatefulWidget {
-  final UserRideRequestInformation? userRideRequestDetails;
-
-  TripStarted({this.userRideRequestDetails});
+class DriverPath extends StatefulWidget {
+  final String driverId;
+  
+  DriverPath({required this.driverId});
 
   @override
-  State<TripStarted> createState() => _TripStartedState();
+  State<DriverPath> createState() => _DriverPathState();
 }
 
-class _TripStartedState extends State<TripStarted> {
+class _DriverPathState extends State<DriverPath> {
   Completer<GoogleMapController> _controllerGoogleMap = Completer();
   GoogleMapController? newGoogleMapController;
 
@@ -41,57 +26,61 @@ class _TripStartedState extends State<TripStarted> {
   double bottomPaddingOfMap = 0;
 
   static final CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(37.42796133580664, -122.085749655962),
-    zoom: 14.4746,
+    target: LatLng(6.9271, 79.8612), // Default position
+    zoom: 14,
   );
 
-  late StreamSubscription<Position> _positionStreamSubscription;
-
-  // Hardcoded destination latitude and longitude for Colombo
-  static final LatLng destinationLatLng = LatLng(66.9271, 79.8612); // Colombo, Sri Lanka
-
-  // To store the distance
+  late LatLng destinationLatLng;
+  late StreamSubscription<DatabaseEvent> _driverLocationSubscription;
+  late DatabaseReference _driverLocationRef;
   double distanceToDestination = 0;
-
-  final String driverId = 'your_driver_id'; 
-  final DriverLocationService _locationService = DriverLocationService();
 
   @override
   void initState() {
     super.initState();
-    _startLocationUpdates();
+    destinationLatLng = LatLng(6.9271, 79.8612); // Set your actual destination coordinates here
+    _startTrackingDriverLocation();
   }
 
-  void _startLocationUpdates() {
-    _positionStreamSubscription = Geolocator.getPositionStream(
-    ).listen((Position position) {
-      LatLng userLatLng = LatLng(position.latitude, position.longitude);
-      print("User Location: ${userLatLng.latitude}, ${userLatLng.longitude}"); // Debugging line
-      _updateMap(userLatLng);
-      _drawPolyline(userLatLng, destinationLatLng);
-      _calculateDistance(userLatLng, destinationLatLng);
-      _locationService.updateDriverLocation(driverId, position);
+  void _startTrackingDriverLocation() {
+    _driverLocationRef = FirebaseDatabase.instance
+        .ref()
+        .child("accepted_drivers")
+        .child(widget.driverId);
+
+    _driverLocationSubscription = _driverLocationRef.onValue.listen((event) {
+      if (event.snapshot.value != null) {
+        Map data = event.snapshot.value as Map;
+        double driverLat = double.parse(data['latitude'].toString());
+        double driverLng = double.parse(data['longitude'].toString());
+
+        LatLng driverLatLng = LatLng(driverLat, driverLng);
+
+        _updateMap(driverLatLng);
+        _drawPolyline(driverLatLng, destinationLatLng);
+        _calculateDistance(driverLatLng, destinationLatLng);
+      }
     });
   }
 
-  void _updateMap(LatLng userLatLng) async {
+  void _updateMap(LatLng driverLatLng) async {
     CameraPosition cameraPosition = CameraPosition(
-      target: userLatLng,
+      target: driverLatLng,
       zoom: 12,
     );
 
     newGoogleMapController!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
 
-    Marker currentLocationMarker = Marker(
-      markerId: MarkerId("currentLocation"),
-      position: userLatLng,
-      infoWindow: InfoWindow(title: "Current Location"),
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+    Marker driverMarker = Marker(
+      markerId: MarkerId("driverMarker"),
+      position: driverLatLng,
+      infoWindow: InfoWindow(title: "Driver Location"),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
     );
 
     setState(() {
-      markerSet.removeWhere((marker) => marker.markerId.value == "currentLocation");
-      markerSet.add(currentLocationMarker);
+      markerSet.removeWhere((marker) => marker.markerId.value == "driverMarker");
+      markerSet.add(driverMarker);
     });
   }
 
@@ -120,16 +109,16 @@ class _TripStartedState extends State<TripStarted> {
     }
   }
 
-  void _calculateDistance(LatLng userLatLng, LatLng destinationLatLng) {
+  void _calculateDistance(LatLng driverLatLng, LatLng destinationLatLng) {
     double distanceInMeters = Geolocator.distanceBetween(
-      userLatLng.latitude,
-      userLatLng.longitude,
+      driverLatLng.latitude,
+      driverLatLng.longitude,
       destinationLatLng.latitude,
       destinationLatLng.longitude,
     );
 
     setState(() {
-      distanceToDestination = distanceInMeters/1000;
+      distanceToDestination = distanceInMeters / 1000;
     });
 
     if (distanceInMeters <= 100) {
@@ -139,12 +128,13 @@ class _TripStartedState extends State<TripStarted> {
 
   void _onNearDestination() {
     // Trigger your function here
-    print("You are within 100 meters of the destination!");
+    print("Driver is within 100 meters of the destination!");
+    // Add any additional logic here, e.g., navigating to another screen or displaying a dialog.
   }
 
   @override
   void dispose() {
-    _positionStreamSubscription.cancel();
+    _driverLocationSubscription.cancel();
     super.dispose();
   }
 

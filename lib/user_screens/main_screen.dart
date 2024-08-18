@@ -9,6 +9,7 @@ import '../user_infoHandler/app_info.dart';
 import 'package:provider/provider.dart';
 import '../user_models/active_nearby_available_drivers.dart';
 import 'drawer_screen.dart';
+import 'driver_comming.dart';
 import 'precise_pickup_location.dart';
 import 'search_places-screen.dart';
 import '../splash_screen/splash_screen.dart';
@@ -535,7 +536,8 @@ class _UserMainScreenState extends State<UserMainScreen> {
     await FirebaseDatabase.instance.ref().child("All Ride Requests").child(referenceRideRequest!.key!).child("driverId").onValue.listen((eventRideRequestSnapShot) {
       print("EventSnapshot: + ${eventRideRequestSnapShot.snapshot.value}");
       if(eventRideRequestSnapShot.snapshot.value != "waiting"){
-         showUIForAssignedDriverInfo();
+         showUIForAssignedDriverInfo(eventRideRequestSnapShot.snapshot.value.toString());
+         Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => DriverComming(driverId: eventRideRequestSnapShot.snapshot.value.toString(),)));
       }
     });
     
@@ -555,7 +557,11 @@ class _UserMainScreenState extends State<UserMainScreen> {
     }
   }
 
-  showUIForAssignedDriverInfo(){
+  showUIForAssignedDriverInfo(String driverId) async {
+    DatabaseReference ref = FirebaseDatabase.instance.ref().child("drivers").child(driverId).child("car_details");
+    driverName = await ref.child("driverName").once().then((dataSnapShot){
+      return dataSnapShot.snapshot.value.toString();
+    });
     setState(() {
       waitingResponsefromDriverContainerHeight = 0;
       searchLocationContainerHeight = 0;
@@ -1209,6 +1215,56 @@ class _UserMainScreenState extends State<UserMainScreen> {
                    ),                  
                 ),
               ),
+              ),
+
+              //UI for assigned driver
+              Positioned(
+                bottom:0,
+                left:0,
+                right:0,
+                child:Container(
+                  height: assignedDriverContainerHeight,
+                  decoration: BoxDecoration(
+                    color: darkTheme? Colors.black : Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.all(10),
+                    child: Column(
+                      children: [
+                        Text(driverRideStatus, style: TextStyle(fontWeight: FontWeight.bold),),
+                        SizedBox(height: 5,),
+                        Divider(thickness: 1, color: darkTheme? Colors.amber.shade400 : Colors.blue,),
+                        SizedBox(height: 5,),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: darkTheme? Colors.amber.shade400 : Colors.lightBlue,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(Icons.person, color: Colors.white,),
+                                ),
+                                SizedBox(width: 10,),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text("Driver Name", style: TextStyle(fontWeight: FontWeight.bold),),
+                                    Text(driverName, style: TextStyle(color: Colors.grey),),
+                                  ],
+                                )
+                              ],
+                              )
+                          ],
+                          )
+                      ],
+                    ),
+                    ),
+                ),
               ),
 
             // Positioned(

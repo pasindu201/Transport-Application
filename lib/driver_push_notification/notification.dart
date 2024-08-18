@@ -9,13 +9,23 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 import '../driver_screens/new_trip_screen.dart';
 
+void updateDriverLocation(String driverId) {
+  FirebaseDatabase.instance.ref().child("accepted_drivers").child(driverId).set({
+    "latitude": driverCurrentPosition!.latitude,
+    "longitude": driverCurrentPosition!.longitude,
+  });
+}
+
 acceptRideRequest(UserRideRequestInformation userRideRequestDetails, BuildContext context){
+  updateDriverLocation(firebaseAuth.currentUser!.uid);
   FirebaseDatabase.instance.ref().child("drivers").child(firebaseAuth.currentUser!.uid).child("newRideStatus").set("accepted");
+  FirebaseDatabase.instance.ref().child("All Ride Requests").child(userRideRequestDetails.rideRequestId!).child("driverId").set(firebaseAuth.currentUser!.uid);
   AssistantMethods.pauseLiveLocationUpdate();
   Navigator.push(context, MaterialPageRoute(builder: (c) => NewTripScreen(
     userRideRequestDetails: userRideRequestDetails,
-    )));
-               
+    )
+    )
+  );           
 }
 
 void showSimpleDialog(UserRideRequestInformation userRideRequestDetails, BuildContext context) {
