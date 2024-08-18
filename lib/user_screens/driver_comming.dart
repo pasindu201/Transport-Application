@@ -5,6 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:users/user_screens/main_screen.dart';
+import '../user_tab_pages/home.dart';
 import './../driver_models/user_ride_request_information.dart';
 import './../driver_global/map_key.dart';
 import 'drivers_path.dart';
@@ -20,12 +21,12 @@ class DriverComming extends StatefulWidget {
 
 class _DriverCommingState extends State<DriverComming> {
   Position? userCurrentPosition;
+  LatLng? driverCurrentPosition;
 
   String? driverName;
   String? driverPhone;
-  String? driverCarModel;
-  String? driverCarColor;
   String? driverCarNumber;
+  String? driverCarColor;
 
   final Completer<GoogleMapController> _controllerGoogleMap =
       Completer<GoogleMapController>();
@@ -37,6 +38,10 @@ class _DriverCommingState extends State<DriverComming> {
   );
 
   Set<Marker> _markers = {};
+  Set<Polyline> _polylines = {};
+  
+  final PolylinePoints _polylinePoints = PolylinePoints();
+  List<LatLng> polylineCoordinates = [];
 
   @override
   void initState() {
@@ -78,14 +83,14 @@ class _DriverCommingState extends State<DriverComming> {
       }
     });
   }
-  
+
   void _acceptDriver() {
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => DriverPath(driverId: widget.driverId,)));
     print("Driver accepted");
   }
 
   void _cancelRide() {
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => UserMainScreen()));
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => Home()));
     print("Ride canceled");
   }
 
@@ -95,15 +100,17 @@ class _DriverCommingState extends State<DriverComming> {
         .child("accepted_drivers")
         .child(widget.driverId);
 
-    driverLocationRef.onValue.listen((event) {
+    driverLocationRef.onValue.listen((event) async {
       if (event.snapshot.value != null) {
         Map data = event.snapshot.value as Map;
         double driverLat = double.parse(data['latitude'].toString());
         double driverLng = double.parse(data['longitude'].toString());
 
         LatLng driverPosition = LatLng(driverLat, driverLng);
+        driverCurrentPosition = driverPosition;
 
         _updateDriverMarker(driverPosition);
+        await _updatePolyline();  
       }
     });
   }
@@ -117,244 +124,116 @@ class _DriverCommingState extends State<DriverComming> {
     );
 
     setState(() {
+      _markers.removeWhere((marker) => marker.markerId.value == "driverMarker");
       _markers.add(driverMarker);
     });
   }
 
+  Future<void> _updatePolyline() async {
+    if (userCurrentPosition != null && driverCurrentPosition != null) {
+      PolylineResult result = await _polylinePoints.getRouteBetweenCoordinates(
+        mapkey, 
+        PointLatLng(userCurrentPosition!.latitude, userCurrentPosition!.longitude),
+        PointLatLng(driverCurrentPosition!.latitude, driverCurrentPosition!.longitude),
+      );
+
+      if (result.points.isNotEmpty) {
+        polylineCoordinates.clear();  // Clear previous coordinates
+        for (var point in result.points) {
+          polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+        }
+
+        setState(() {
+          _polylines.add(Polyline(
+            polylineId: PolylineId("polyline"),
+            color: Colors.blue,
+            width: 5,
+            points: polylineCoordinates,
+          ));
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    bool darkTheme =
-        MediaQuery.of(context).platformBrightness == Brightness.dark;
-    return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-      },
-      child: Scaffold(
-        body: Stack(
-          children: [
-            GoogleMap(
-              mapType: MapType.normal,
-              myLocationEnabled: true,
-              zoomControlsEnabled: true,
-              zoomGesturesEnabled: true,
-              initialCameraPosition: _kGooglePlex,
-              markers: _markers,
-              onMapCreated: (GoogleMapController controller) {
-                _controllerGoogleMap.complete(controller);
-                newGoogleMapController = controller;
-                locateUserPosition();
-              },
+    bool darkTheme = MediaQuery.of(context).platformBrightness == Brightness.dark;
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Driver Coming'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.menu),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+          ),
+        ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: darkTheme ? Colors.black : Colors.blue,
+              ),
+              child: Text(
+                'Driver Details',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                height: 300,
-                decoration: BoxDecoration(
-                  color: darkTheme ? Colors.black : Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(10),
-                  child: Column(
-                    children: [
-                      Text(
-                        "Driver Status",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(height: 5),
-                      Divider(
-                        thickness: 1,
-                        color: darkTheme
-                            ? Colors.amber.shade400
-                            : Colors.blue,
-                      ),
-                      SizedBox(height: 5),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: darkTheme
-                                      ? Colors.amber.shade400
-                                      : Colors.lightBlue,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Icon(
-                                  Icons.person,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              SizedBox(width: 10),
-                              Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Driver Name",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    driverName ?? "No Name",
-                                    style: TextStyle(color: Colors.grey),
-                                  ),
-                                ],
-                              )
-                            ],
-                          )
-                        ],
-                      ),
-
-                      SizedBox(height: 5),
-
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: darkTheme
-                                      ? Colors.amber.shade400
-                                      : Colors.lightBlue,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Icon(
-                                  Icons.phone,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              SizedBox(width: 10),
-                              Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Driver Phone",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    driverPhone ?? "No Phone",
-                                    style: TextStyle(color: Colors.grey),
-                                  ),
-                                ],
-                              )
-                            ],
-                          )
-                        ],
-                      ),
-
-                      SizedBox(height: 5),
-
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: darkTheme
-                                      ? Colors.amber.shade400
-                                      : Colors.lightBlue,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Icon(
-                                  Icons.phone,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              SizedBox(width: 10),
-                              Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Vehicle Number",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    driverCarNumber ?? "No Number",
-                                    style: TextStyle(color: Colors.grey),
-                                  ),
-                                ],
-                              )
-                            ],
-                          )
-                        ],
-                      ),
-
-                      SizedBox(height: 5),
-
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: darkTheme
-                                      ? Colors.amber.shade400
-                                      : Colors.lightBlue,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Icon(
-                                  Icons.car_rental,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              SizedBox(width: 10),
-                              Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Vehicle Color",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    driverCarColor ?? "Can not found",
-                                    style: TextStyle(color: Colors.grey),
-                                  ),
-                                ],
-                              )
-                            ],
-                          )
-                        ],
-                      ),
-
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          ElevatedButton(
-                            onPressed: _acceptDriver,
-                            child: Text("Accept Driver"),
-                          ),
-                          ElevatedButton(
-                            onPressed: _cancelRide,
-                            child: Text("Cancel Ride"),
-                            style: ElevatedButton.styleFrom(
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text('Name'),
+              subtitle: Text(driverName ?? 'No Name'),
+            ),
+            ListTile(
+              leading: Icon(Icons.phone),
+              title: Text('Phone'),
+              subtitle: Text(driverPhone ?? 'No Phone'),
+            ),
+            ListTile(
+              leading: Icon(Icons.car_repair),
+              title: Text('Vehicle Number'),
+              subtitle: Text(driverCarNumber ?? 'No Number'),
+            ),
+            ListTile(
+              leading: Icon(Icons.color_lens),
+              title: Text('Vehicle Color'),
+              subtitle: Text(driverCarColor ?? 'Not Found'),
+            ),
+            SizedBox(height: 20),
+            ListTile(
+              title: ElevatedButton(
+                onPressed: _cancelRide,
+                child: Text('Cancel Ride'),
               ),
             ),
           ],
         ),
+      ),
+      body: Stack(
+        children: [
+          GoogleMap(
+            mapType: MapType.normal,
+            myLocationEnabled: true,
+            zoomControlsEnabled: true,
+            zoomGesturesEnabled: true,
+            initialCameraPosition: _kGooglePlex,
+            markers: _markers,
+            polylines: _polylines,
+            onMapCreated: (GoogleMapController controller) {
+              _controllerGoogleMap.complete(controller);
+              newGoogleMapController = controller;
+              locateUserPosition();
+            },
+          ),
+        ],
       ),
     );
   }

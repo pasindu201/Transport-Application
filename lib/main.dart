@@ -5,7 +5,6 @@ import 'package:users/driver_tab_pages/home.dart';
 import 'driver_screens/trip_started.dart';
 import 'driver_screens/vehicle_info_screen.dart';
 import 'user_screens/driver_comming.dart';
-import 'user_screens/drivers_path.dart';
 import 'user_screens/forgot_password_screen.dart';
 import 'user_screens/home_screen.dart';
 import 'user_screens/login_screen.dart';
@@ -39,7 +38,7 @@ class MyApp extends StatelessWidget {
           themeMode: ThemeMode.system,
           theme: MyThemes.lightTheme,
           darkTheme: MyThemes.darkTheme,
-          home: DriverPath(driverId: "fzN8Pb5XhgOzPWYVzI0NIRarIgq1",),
+          home: SplashScreen(),
         )
     );
   }

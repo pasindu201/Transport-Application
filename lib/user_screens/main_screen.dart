@@ -21,11 +21,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:firebase_database/firebase_database.dart';
-
 import '../user_widgets/pay_fare_amount_dialog.dart';
 
 class UserMainScreen extends StatefulWidget {
-  const UserMainScreen({super.key});
+  String? category;
+  
+  UserMainScreen({required this.category});
 
   @override
   State<UserMainScreen> createState() => _UserMainScreenState();
@@ -520,7 +521,7 @@ class _UserMainScreenState extends State<UserMainScreen> {
     print("driversList: " + driversList.toString());
 
     for (int i = 0; i < driversList.length; i++) {
-      // if (driversList[i]["car_details"]["type"] == selectedVehicleType) {
+      if (driversList[i]["car_details"]["service_type"] == widget.category) {
         if (referenceRideRequest?.key != null) {
           AssistantMethods.sendNotificationToSelectedDriver(
             driversList[i]["token"], 
@@ -528,7 +529,7 @@ class _UserMainScreenState extends State<UserMainScreen> {
             referenceRideRequest!.key!
           );
         }
-      // }
+      }
     }
 
     showSearchingForDriversContainer();

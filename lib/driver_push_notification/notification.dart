@@ -34,13 +34,68 @@ void showSimpleDialog(UserRideRequestInformation userRideRequestDetails, BuildCo
     builder: (BuildContext context) {
       bool darkTheme = MediaQuery.of(context).platformBrightness == Brightness.dark;
       return AlertDialog(
-        title: Text("Dialog Title"),
+        title: Text(
+          "Ride Request Details",
+          style: TextStyle(
+            color: darkTheme ? Colors.amber.shade400 : Colors.blue,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         content: Column(
+          mainAxisSize: MainAxisSize.min, 
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("User Name: ${userRideRequestDetails.userName}"),
-            Text("User Phone: ${userRideRequestDetails.userPhone}"),
-            Text("Origin Address: ${userRideRequestDetails.originAddress}"),
-            Text("Destination Address: ${userRideRequestDetails.destinationAddress}"),
+            Row(
+              children: [
+                Icon(Icons.person, color: darkTheme ? Colors.amber.shade400 : Colors.blue),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "User Name: ${userRideRequestDetails.userName}",
+                    style: TextStyle(color: darkTheme ? Colors.white70 : Colors.black),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.phone, color: darkTheme ? Colors.amber.shade400 : Colors.blue),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "User Phone: ${userRideRequestDetails.userPhone}",
+                    style: TextStyle(color: darkTheme ? Colors.white70 : Colors.black),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.location_on, color: darkTheme ? Colors.amber.shade400 : Colors.blue),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "Origin: ${userRideRequestDetails.originAddress}",
+                    style: TextStyle(color: darkTheme ? Colors.white70 : Colors.black),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.location_on_outlined, color: darkTheme ? Colors.amber.shade400 : Colors.blue),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "Destination: ${userRideRequestDetails.destinationAddress}",
+                    style: TextStyle(color: darkTheme ? Colors.white70 : Colors.black),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
         actions: [
@@ -48,18 +103,26 @@ void showSimpleDialog(UserRideRequestInformation userRideRequestDetails, BuildCo
             onPressed: () {
               acceptRideRequest(userRideRequestDetails, context);
             },
+            style: TextButton.styleFrom(
+              foregroundColor: darkTheme ? Colors.amber.shade400 : Colors.blue,
+            ),
             child: Text("Accept"),
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(); // Closes the dialog
+              Navigator.of(context).pop(); 
             },
+            style: TextButton.styleFrom(
+              foregroundColor: darkTheme ? Colors.grey : Colors.red,
+            ),
             child: Text("Close"),
           ),
         ],
+        backgroundColor: darkTheme ? Colors.grey[850] : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
       );
     },
   );
-
-
 }

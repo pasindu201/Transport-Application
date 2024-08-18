@@ -13,46 +13,55 @@ class CarInfoScreen extends StatefulWidget {
 }
 
 class _CarInfoScreenState extends State<CarInfoScreen> {
+  final TextEditingController carNumberTextEditingController = TextEditingController();
+  final TextEditingController carColorTextEditingController = TextEditingController();
+  final TextEditingController serviceTextEditingController = TextEditingController();
+  final TextEditingController vehicleTextEditingController = TextEditingController();
 
-  final carModelTextEditingController = TextEditingController();
-  final carNumberTextEditingController = TextEditingController();
-  final carColorTextEditingController = TextEditingController();
+  List<String> serviceTypes = ["Transport", "General", "Car Parts", "Food Items", "Furniture", "Construction"];
+  String? selectedServiceType;
 
-  List<String> carTypes = ["Car", "Van", "Lorry", "Three Wheel", "Bike"];
+  List<String> carTypes = ["Car", "Motorbike", "Lorry", "Three-Wheeler", "Furniture"];
   String? selectedCarType;
 
   final _formKey = GlobalKey<FormState>();
 
-  _submit(){
-    if(_formKey.currentState!.validate()){
-      Map driverCarInfoMap = {
-        "car_model": carModelTextEditingController.text.trim(),
-        "car_number": carNumberTextEditingController.text.trim(),
-        "car_color": carColorTextEditingController.text.trim(),
+  _submit() {
+    if (_formKey.currentState!.validate()) {
+      Map<String, String> driverCarInfoMap = {
+        "number": carNumberTextEditingController.text.trim(),
+        "color": carColorTextEditingController.text.trim(),
+        "service_type": selectedServiceType ?? "",
+        "vehicle_type": selectedCarType ?? "",
       };
 
       DatabaseReference userRef = FirebaseDatabase.instance.ref().child("drivers");
       userRef.child(currentUser!.uid).child("car_details").set(driverCarInfoMap);
 
-      Fluttertoast.showToast(msg: "Car details has been saved..");
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => SplashScreen()));
+      Fluttertoast.showToast(msg: "Car details have been saved.");
 
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (c) => SplashScreen()),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-
     bool darkTheme = MediaQuery.of(context).platformBrightness == Brightness.dark;
 
     return GestureDetector(
-      onTap: (){
+      onTap: () {
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text("Vehicle Details",style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
-          elevation: 50,
+          title: Text(
+            "Vehicle Details",
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          elevation: 5,
           centerTitle: true,
           backgroundColor: darkTheme ? Colors.black : Colors.blue,
         ),
@@ -63,12 +72,13 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
               children: [
                 Image.asset(darkTheme ? "images/delivery.jpeg" : "images/delivery.jpeg"),
 
-                SizedBox(height: 15,),
+                SizedBox(height: 15),
 
-                Text("Add Vehicle details",
+                Text(
+                  "Add Vehicle details",
                   style: TextStyle(
-                    color: darkTheme? Colors.amber.shade400 : Colors.black,
-                    fontSize: 25,
+                    color: darkTheme ? Colors.amber.shade400 : Colors.black,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -82,31 +92,7 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         TextFormField(
-                          inputFormatters: [
-                            LengthLimitingTextInputFormatter(50)
-                          ],
-                          decoration: InputDecoration(
-                            hintText: "Vehicle Model... ex:- Toyota Car",
-                            hintStyle: TextStyle(color: Colors.grey),
-                            filled: true,
-                            fillColor: darkTheme ? Colors.black45 : Colors.grey.shade200,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(40),
-                              borderSide: BorderSide(
-                                width: 0,
-                                style: BorderStyle.none,
-                              ),
-                            ),
-                            prefixIcon: Icon(Icons.person, color: darkTheme ? Colors.amber.shade400 : Colors.grey),
-                          ),
-                          onChanged: (text) => setState(() {
-                            carModelTextEditingController.text = text;
-                          }),
-                        ),
-
-                        SizedBox(height: 10,),
-
-                        TextFormField(
+                          controller: carNumberTextEditingController,
                           inputFormatters: [
                             LengthLimitingTextInputFormatter(50)
                           ],
@@ -122,16 +108,20 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
                                 style: BorderStyle.none,
                               ),
                             ),
-                            prefixIcon: Icon(Icons.person, color: darkTheme ? Colors.amber.shade400 : Colors.grey),
+                            prefixIcon: Icon(Icons.directions_car, color: darkTheme ? Colors.amber.shade400 : Colors.grey),
                           ),
-                          onChanged: (text) => setState(() {
-                            carModelTextEditingController.text = text;
-                          }),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter vehicle number';
+                            }
+                            return null;
+                          },
                         ),
 
-                        SizedBox(height: 10,),
+                        SizedBox(height: 10),
 
                         TextFormField(
+                          controller: carColorTextEditingController,
                           inputFormatters: [
                             LengthLimitingTextInputFormatter(50)
                           ],
@@ -147,45 +137,87 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
                                 style: BorderStyle.none,
                               ),
                             ),
-                            prefixIcon: Icon(Icons.person, color: darkTheme ? Colors.amber.shade400 : Colors.grey),
+                            prefixIcon: Icon(Icons.color_lens, color: darkTheme ? Colors.amber.shade400 : Colors.grey),
                           ),
-                          onChanged: (text) => setState(() {
-                            carModelTextEditingController.text = text;
-                          }),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter vehicle color';
+                            }
+                            return null;
+                          },
                         ),
 
-                        SizedBox(height: 10,),
+                        SizedBox(height: 10),
 
-                        DropdownButtonFormField(
+                        DropdownButtonFormField<String>(
                           decoration: InputDecoration(
-                            hintText: "Please Choose car Type",
-                            prefixIcon: Icon(Icons.car_crash, color: darkTheme? Colors.amber.shade400 : Colors.grey,),
+                            hintText: "Your Service Type",
+                            prefixIcon: Icon(Icons.build, color: darkTheme ? Colors.amber.shade400 : Colors.grey),
                             filled: true,
-                            fillColor: darkTheme? Colors.black45 : Colors.grey.shade200,
+                            fillColor: darkTheme ? Colors.black45 : Colors.grey.shade200,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(40),
                               borderSide: BorderSide(
                                 width: 0,
                                 style: BorderStyle.none,
-                              )
-                            )
+                              ),
+                            ),
                           ),
-                            items: carTypes.map((car){
-                              return DropdownMenuItem(
-                                  child: Text(car,
-                                  style: TextStyle(color: Colors.grey),
-                                  ),
-                                value: car,
-                              );
-                            }).toList(),
-                            onChanged: (newValue) {
+                          items: serviceTypes.map((service) {
+                            return DropdownMenuItem(
+                              child: Text(service, style: TextStyle(color: Colors.grey)),
+                              value: service,
+                            );
+                          }).toList(),
+                          onChanged: (newValue) {
                             setState(() {
-                              selectedCarType = newValue.toString();
+                              selectedServiceType = newValue;
                             });
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please select a service type';
                             }
+                            return null;
+                          },
                         ),
 
-                        SizedBox(height: 10,),
+                        SizedBox(height: 10),
+
+                        DropdownButtonFormField<String>(
+                          decoration: InputDecoration(
+                            hintText: "Please Choose Vehicle Type",
+                            prefixIcon: Icon(Icons.local_taxi, color: darkTheme ? Colors.amber.shade400 : Colors.grey),
+                            filled: true,
+                            fillColor: darkTheme ? Colors.black45 : Colors.grey.shade200,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(40),
+                              borderSide: BorderSide(
+                                width: 0,
+                                style: BorderStyle.none,
+                              ),
+                            ),
+                          ),
+                          items: carTypes.map((car) {
+                            return DropdownMenuItem(
+                              child: Text(car, style: TextStyle(color: Colors.grey)),
+                              value: car,
+                            );
+                          }).toList(),
+                          onChanged: (newValue) {
+                            setState(() {
+                              selectedCarType = newValue;
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please select a vehicle type';
+                            }
+                            return null;
+                          },
+                        ),
+
+                        SizedBox(height: 10),
 
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
@@ -199,17 +231,8 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
                           child: Text("Confirm", style: TextStyle(fontSize: 20, color: Colors.white)),
                         ),
 
-                        SizedBox(height: 10,),
-                        GestureDetector(
-                          onTap: () {},
-                          child: Text(
-                            "Forgot password?",
-                            style: TextStyle(
-                              color: darkTheme ? Colors.amber.shade400 : Colors.blue,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 10,),
+                        SizedBox(height: 10),
+
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -217,7 +240,7 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
                               "Have an account?",
                               style: TextStyle(color: Colors.grey, fontSize: 15),
                             ),
-                            SizedBox(width: 5,),
+                            SizedBox(width: 5),
                             GestureDetector(
                               onTap: () {
                                 Navigator.pop(context);
@@ -237,7 +260,7 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
                   ),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),

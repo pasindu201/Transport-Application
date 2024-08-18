@@ -50,7 +50,7 @@ class UserSelection extends StatelessWidget {
               style: TextStyle(color: Colors.white, fontSize: 24),
             ),
             Padding(
-              padding: const EdgeInsets.all(40),
+              padding: const EdgeInsets.all(20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -63,15 +63,20 @@ class UserSelection extends StatelessWidget {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      fixedSize: const Size(150, 50),
+                      fixedSize: const Size(135, 50),
                     ),
                     child: const Text(
                       'Driver',
                       style: TextStyle(
                         fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
                       ),
                     ),
                   ),
+
+                  SizedBox(width: 2),
+
                   ElevatedButton(
                     onPressed: () {
                       Navigator.push(
@@ -82,12 +87,14 @@ class UserSelection extends StatelessWidget {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      fixedSize: const Size(150, 50),
+                      fixedSize: const Size(135, 50),
                     ),
                     child: const Text(
                       'Customer',
                       style: TextStyle(
                         fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
                       ),
                     ),
                   ),

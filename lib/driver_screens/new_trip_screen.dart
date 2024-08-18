@@ -10,7 +10,7 @@ import 'trip_started.dart';
 class NewTripScreen extends StatefulWidget {
   final UserRideRequestInformation? userRideRequestDetails;
 
-  NewTripScreen({required  this.userRideRequestDetails});
+  NewTripScreen({required this.userRideRequestDetails});
 
   @override
   State<NewTripScreen> createState() => _NewTripScreenState();

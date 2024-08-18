@@ -7,6 +7,8 @@ import '../user_global/global.dart';
 import '../user_screens/main_screen.dart';
 import 'package:firebase_database/firebase_database.dart';
 
+import '../user_tab_pages/home.dart';
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -43,7 +45,7 @@ class _SplashScreenState extends State<SplashScreen> {
           isDriver = true;
         }
         if (isUser) {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => const UserMainScreen()));
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => Home()));
         } else if (isDriver) {
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => const DriverMainScreen()));
         } else {
