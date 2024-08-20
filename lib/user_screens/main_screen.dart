@@ -521,7 +521,7 @@ class _UserMainScreenState extends State<UserMainScreen> {
     print("driversList: " + driversList.toString());
 
     for (int i = 0; i < driversList.length; i++) {
-      if (driversList[i]["car_details"]["service_type"] == widget.category) {
+      if (driversList[i]["vehicle_details"]["service"] == widget.category) {
         if (referenceRideRequest?.key != null) {
           AssistantMethods.sendNotificationToSelectedDriver(
             driversList[i]["token"], 

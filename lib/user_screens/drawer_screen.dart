@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../user_global/global.dart';
-import 'profile_screen.dart';
 import '../splash_screen/splash_screen.dart';
+import '../user_tab_pages/account.dart';
 
 class DrawerScreen extends StatelessWidget {
   const DrawerScreen({super.key});
@@ -43,7 +43,7 @@ class DrawerScreen extends StatelessWidget {
                   const SizedBox(height: 10),
                   GestureDetector(
                     onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (c) => ProfileScreen()));
+                      Navigator.push(context, MaterialPageRoute(builder: (c) => UserProfilePage()));
                     },
                     child: const Text(
                       "Edit Profile",

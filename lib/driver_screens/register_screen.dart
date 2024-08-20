@@ -8,7 +8,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../driver_global/global.dart';
-
 import 'email_verification_screen.dart';
 import 'main_screen.dart';
 import 'social_login.dart';

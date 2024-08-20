@@ -1,9 +1,8 @@
-import '../driver_global/global.dart';
-import '../splash_screen/splash_screen.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
 import '../driver_tab_pages/home.dart';
+import '../driver_tab_pages/profile.dart';
+import '../driver_tab_pages/activity.dart'; // Add your Earnings page
+import '../driver_tab_pages/notifications.dart'; // Add your Notifications page
 
 class DriverMainScreen extends StatefulWidget {
   const DriverMainScreen({super.key});
@@ -12,58 +11,72 @@ class DriverMainScreen extends StatefulWidget {
   State<DriverMainScreen> createState() => _DriverMainScreenState();
 }
 
-class _DriverMainScreenState extends State<DriverMainScreen> with SingleTickerProviderStateMixin {
+class _DriverMainScreenState extends State<DriverMainScreen> {
+  int _bottomBarIndex = 0;
+  bool _isPageTwoLocked = false;
+  final int _activateTime = 2000; // Lock duration in milliseconds
 
-  TabController? tabController;
-  int selectedIndex = 0;
+  void _onItemTapped(int index) {
+    if (_isPageTwoLocked && index == 1) {
+      // Prevent switching to Page2 if it's locked
+      return;
+    }
 
-  onItemClicked(int index) {
     setState(() {
-      selectedIndex = index;
-      tabController!.index = selectedIndex;
+      _bottomBarIndex = index;
+      if (index == 1) {
+        _isPageTwoLocked = true;
+        // Unlock after the specified duration
+        Future.delayed(Duration(milliseconds: _activateTime), () {
+          setState(() {
+            _isPageTwoLocked = false;
+          });
+        });
+      }
     });
-  }
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-
-    tabController = TabController(length: 4, vsync: this);
   }
 
   @override
   Widget build(BuildContext context) {
 
-    bool darkTheme = MediaQuery.of(context).platformBrightness == Brightness.dark;
-
     return Scaffold(
-      body: TabBarView(
-        physics: NeverScrollableScrollPhysics(),
-        controller: tabController,
+      body: IndexedStack(
+        index: _bottomBarIndex,
         children: [
-          HomeTabPage(),
-          // EarningsTabPage(),
-          // RatingsTabPage(),
-          // ProfileTabPage()
+          HomeTabPage(key: PageStorageKey('home')),
+          ActivityTabPage(key: PageStorageKey('earnings')), // Your Earnings page
+          NotificationsTabPage(key: PageStorageKey('notifications')), // Your Notifications page
+          DriverProfilePage(key: PageStorageKey('profile')),
         ],
       ),
-      
-      bottomNavigationBar: BottomNavigationBar(
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.credit_card), label: "Earnings"),
-          BottomNavigationBarItem(icon: Icon(Icons.star), label: "Ratings"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Account"),
-        ],
-        unselectedItemColor: darkTheme? Colors.black45 : Colors.white54,
-        selectedItemColor: darkTheme? Colors.black : Colors.white,
-        backgroundColor: darkTheme? Colors.amber : Colors.blue,
-        type: BottomNavigationBarType.fixed,
-        selectedLabelStyle: TextStyle(fontSize: 14),
-        showUnselectedLabels: true,
-        currentIndex: selectedIndex,
-        onTap: onItemClicked,
+      bottomNavigationBar: AbsorbPointer(
+        absorbing: _isPageTwoLocked,
+        child: BottomNavigationBar(
+          backgroundColor: Colors.grey, 
+          selectedItemColor: Colors.blue, 
+          unselectedItemColor: Colors.black,
+          unselectedFontSize: 5,
+          currentIndex: _bottomBarIndex,
+          onTap: _onItemTapped,
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.location_on),
+              label: 'Earnings', // Update label for the Earnings page
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.notifications),
+              label: 'Notifications', // Update label for the Notifications page
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
+        ),
       ),
     );
   }

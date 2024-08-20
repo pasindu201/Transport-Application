@@ -1,7 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
+import '../user_tab_pages/account.dart';
 import '../user_tab_pages/home.dart';
+import '../user_tab_pages/activity.dart';
+import '../user_tab_pages/notifications.dart';
 
 class UserHomePage extends StatefulWidget {
   const UserHomePage({super.key});
@@ -10,58 +11,93 @@ class UserHomePage extends StatefulWidget {
   State<UserHomePage> createState() => _UserHomePageState();
 }
 
-class _UserHomePageState extends State<UserHomePage> with SingleTickerProviderStateMixin {
+class _UserHomePageState extends State<UserHomePage> {
+  int _bottomBarIndex = 0;
+  bool _isPageTwoLocked = false;
+  final int _activateTime = 2000; // Lock duration in milliseconds
 
-  TabController? tabController;
-  int selectedIndex = 0;
+  void _onItemTapped(int index) {
+    if (_isPageTwoLocked && index == 1) {
+      // Prevent switching to Page2 if it's locked
+      return;
+    }
 
-  onItemClicked(int index) {
     setState(() {
-      selectedIndex = index;
-      tabController!.index = selectedIndex;
+      _bottomBarIndex = index;
+      if (index == 1) {
+        _isPageTwoLocked = true;
+        // Unlock after the specified duration
+        Future.delayed(Duration(milliseconds: _activateTime), () {
+          setState(() {
+            _isPageTwoLocked = false;
+          });
+        });
+      }
     });
   }
 
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
+  Widget _buildNavItem(IconData icon, int index, String label) {
+    bool isLocked = index == 1 && _isPageTwoLocked;
+    return GestureDetector(
+      onTap: () {
+        if (!isLocked) _onItemTapped(index);
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            color: isLocked
+                ? Colors.grey
+                : (_bottomBarIndex == index ? Colors.black : const Color.fromARGB(255, 90, 90, 90)),
+          ),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: isLocked
+                  ? Colors.grey
+                  : (_bottomBarIndex == index ? Colors.black : const Color.fromARGB(255, 90, 90, 90)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-    tabController = TabController(length: 4, vsync: this);
+  Widget customBottomNavigationBar() {
+    return Container(
+      color: const Color.fromARGB(255, 211, 211, 211),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(0, 6.0, 0, 4.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(Icons.home, 0, 'Home'),
+            _buildNavItem(Icons.credit_card, 1, 'Activity'),
+            _buildNavItem(Icons.notifications, 2, 'Notifications'),
+            _buildNavItem(Icons.person, 3, 'Account'),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-
-    bool darkTheme = MediaQuery.of(context).platformBrightness == Brightness.dark;
-
     return Scaffold(
-      body: TabBarView(
-        physics: NeverScrollableScrollPhysics(),
-        controller: tabController,
-        children: [
-          Home(),
-          // EarningsTabPage(),
-          // RatingsTabPage(),
-          // ProfileTabPage()
+      body: IndexedStack(
+        index: _bottomBarIndex,
+        children: const [
+          Home(key: PageStorageKey('home')),
+          ActivityTabPage(key: PageStorageKey('activity')), // Your Activity page
+          NotificationsTabPage(key: PageStorageKey('notifications')), // Your Notifications page
+          UserProfilePage(key: PageStorageKey('profile')), // Your Account page
         ],
       ),
-      
-      bottomNavigationBar: BottomNavigationBar(
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.credit_card), label: "Activity"),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: "Notifications"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Account"),
-        ],
-        unselectedItemColor: darkTheme? Colors.black45 : Colors.white54,
-        selectedItemColor: darkTheme? Colors.black : Colors.white,
-        backgroundColor: darkTheme? Colors.amber : Colors.blue,
-        type: BottomNavigationBarType.fixed,
-        selectedLabelStyle: TextStyle(fontSize: 14),
-        showUnselectedLabels: true,
-        currentIndex: selectedIndex,
-        onTap: onItemClicked,
+      bottomNavigationBar: AbsorbPointer(
+        absorbing: _isPageTwoLocked,
+        child: customBottomNavigationBar(),
       ),
     );
   }

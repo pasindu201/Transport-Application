@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../user_global/global.dart';
 import '../user_screens/main_screen.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class Home extends StatefulWidget {
+  const Home({super.key});
+
   @override
   State<Home> createState() => _HomeState();
 }
@@ -15,7 +18,7 @@ class _HomeState extends State<Home> {
   bool furnitureSelected = false;
   bool constructionSelected = false;
 
-  String selectedCategory = ''; 
+  String selectedCategory = 'General'; 
 
   void _selectCategory(String category) {
     setState(() {
@@ -138,7 +141,8 @@ class _HomeState extends State<Home> {
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: ElevatedButton(
               onPressed: () {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => UserMainScreen(category: selectedCategory)));
+                Fluttertoast.showToast(msg: "${selectedCategory}");
+                Navigator.push(context, MaterialPageRoute(builder: (c) => UserMainScreen(category: selectedCategory)));
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,

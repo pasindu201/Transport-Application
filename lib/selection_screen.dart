@@ -50,7 +50,7 @@ class UserSelection extends StatelessWidget {
               style: TextStyle(color: Colors.white, fontSize: 24),
             ),
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(30),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [

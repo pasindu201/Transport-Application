@@ -14,15 +14,17 @@ class CarInfoScreen extends StatefulWidget {
 
 class _CarInfoScreenState extends State<CarInfoScreen> {
   final TextEditingController carNumberTextEditingController = TextEditingController();
-  final TextEditingController carColorTextEditingController = TextEditingController();
   final TextEditingController serviceTextEditingController = TextEditingController();
   final TextEditingController vehicleTextEditingController = TextEditingController();
 
   List<String> serviceTypes = ["Transport", "General", "Car Parts", "Food Items", "Furniture", "Construction"];
   String? selectedServiceType;
 
-  List<String> carTypes = ["Car", "Motorbike", "Lorry", "Three-Wheeler", "Furniture"];
+  List<String> carTypes = ["Car", "Motorbike", "Lorry", "Truck"];
   String? selectedCarType;
+
+  List<String> weightOptions = ["< 1 kg", "1-5 kg", "5-10 kg", "10-20 kg", "> 20 kg"];
+  String? selectedWeight;
 
   final _formKey = GlobalKey<FormState>();
 
@@ -30,13 +32,13 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
     if (_formKey.currentState!.validate()) {
       Map<String, String> driverCarInfoMap = {
         "number": carNumberTextEditingController.text.trim(),
-        "color": carColorTextEditingController.text.trim(),
-        "service_type": selectedServiceType ?? "",
-        "vehicle_type": selectedCarType ?? "",
+        "capacity": selectedWeight ?? "",
+        "service": selectedServiceType ?? "",
+        "type": selectedCarType ?? "",
       };
 
       DatabaseReference userRef = FirebaseDatabase.instance.ref().child("drivers");
-      userRef.child(currentUser!.uid).child("car_details").set(driverCarInfoMap);
+      userRef.child(currentUser!.uid).child("vehicle_details").set(driverCarInfoMap);
 
       Fluttertoast.showToast(msg: "Car details have been saved.");
 
@@ -120,35 +122,6 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
 
                         SizedBox(height: 10),
 
-                        TextFormField(
-                          controller: carColorTextEditingController,
-                          inputFormatters: [
-                            LengthLimitingTextInputFormatter(50)
-                          ],
-                          decoration: InputDecoration(
-                            hintText: "Vehicle Color",
-                            hintStyle: TextStyle(color: Colors.grey),
-                            filled: true,
-                            fillColor: darkTheme ? Colors.black45 : Colors.grey.shade200,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(40),
-                              borderSide: BorderSide(
-                                width: 0,
-                                style: BorderStyle.none,
-                              ),
-                            ),
-                            prefixIcon: Icon(Icons.color_lens, color: darkTheme ? Colors.amber.shade400 : Colors.grey),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter vehicle color';
-                            }
-                            return null;
-                          },
-                        ),
-
-                        SizedBox(height: 10),
-
                         DropdownButtonFormField<String>(
                           decoration: InputDecoration(
                             hintText: "Your Service Type",
@@ -212,6 +185,41 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please select a vehicle type';
+                            }
+                            return null;
+                          },
+                        ),
+
+                        SizedBox(height: 10),
+
+                        DropdownButtonFormField<String>(
+                          decoration: InputDecoration(
+                            hintText: "Vehicle Weight",
+                            prefixIcon: Icon(Icons.line_weight, color: darkTheme ? Colors.amber.shade400 : Colors.grey),
+                            filled: true,
+                            fillColor: darkTheme ? Colors.black45 : Colors.grey.shade200,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(40),
+                              borderSide: BorderSide(
+                                width: 0,
+                                style: BorderStyle.none,
+                              ),
+                            ),
+                          ),
+                          items: weightOptions.map((weight) {
+                            return DropdownMenuItem(
+                              child: Text(weight, style: TextStyle(color: Colors.grey)),
+                              value: weight,
+                            );
+                          }).toList(),
+                          onChanged: (newValue) {
+                            setState(() {
+                              selectedWeight = newValue;
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please select a vehicle weight';
                             }
                             return null;
                           },

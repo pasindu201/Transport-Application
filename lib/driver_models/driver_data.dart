@@ -3,19 +3,19 @@ class DriverData {
   String? name;
   String? phone;
   String? email;
-  String? car_color;
-  String? car_model;
-  String? car_number;
-  String? car_type;
+  String? service_type;
+  String? vehicle_type;
+  String? vehicle_number;
+  String? weight_capacity;
 
   DriverData({
     this.id,
     this.name,
     this.phone,
     this.email,
-    this.car_color,
-    this.car_model,
-    this.car_number,
-    this.car_type,
+    this.service_type,
+    this.vehicle_type,
+    this.vehicle_number,
+    this.weight_capacity,
   });
 }

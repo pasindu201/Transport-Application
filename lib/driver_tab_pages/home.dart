@@ -60,35 +60,10 @@ class _HomeTabPageState extends State<HomeTabPage> {
     print("This is our address = $humanReadableAddress");
   }
 
-  Future<void> readCurrentDriverInformation() async {
-    currentUser = firebaseAuth.currentUser;
-    FirebaseDatabase.instance
-        .ref()
-        .child("drivers")
-        .child(currentUser!.uid)
-        .once()
-        .then((snap) {
-      if (snap.snapshot.value != null) {
-        onlineDriverData.id = (snap.snapshot.value as Map)["id"];
-        onlineDriverData.name = (snap.snapshot.value as Map)["name"];
-        onlineDriverData.phone = (snap.snapshot.value as Map)["phone"];
-        onlineDriverData.email = (snap.snapshot.value as Map)["email"];
-        onlineDriverData.car_number = (snap.snapshot.value as Map)["car_details"]["car_number"];
-        onlineDriverData.car_model = (snap.snapshot.value as Map)["car_details"]["car_model"];
-        onlineDriverData.car_color = (snap.snapshot.value as Map)["car_details"]["car_color"];
-        onlineDriverData.car_type = (snap.snapshot.value as Map)["car_details"]["type"];    
-        
-        driverVehicleType = (snap.snapshot.value as Map)["car_details"]["type"];
-        
-      }
-    });
-  }
-
   @override
   void initState() {
     super.initState();
     checkIfLocationPermissionAllowed();
-    readCurrentDriverInformation();
 
     PushNotificationSystem pushNotificationSystem = PushNotificationSystem();
     pushNotificationSystem.initializeCloudMessaging(context);
@@ -121,9 +96,7 @@ class _HomeTabPageState extends State<HomeTabPage> {
           ),
         // Button for online/offline driver
         Positioned(
-          top: statusText != "Now Online"
-              ? MediaQuery.of(context).size.height * 0.45
-              : 40,
+          top: statusText != "Now Online" ? MediaQuery.of(context).size.height * 0.45 : 40,
           left: 0,
           right: 0,
           child: Row(
@@ -134,7 +107,6 @@ class _HomeTabPageState extends State<HomeTabPage> {
                   if (!isDriverActive) {
                     setDriverOnline();
                     updateDriverLocationInRealTime();
-
                     setState(() {
                       statusText = "Now Online";
                       isDriverActive = true;
@@ -158,19 +130,19 @@ class _HomeTabPageState extends State<HomeTabPage> {
                   ),
                 ),
                 child: statusText != "Now Online"
-                    ? Text(
-                        statusText,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(
-                        Icons.phonelink_ring,
+                  ? Text(
+                      statusText,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                         color: Colors.white,
-                        size: 26,
                       ),
+                    )
+                  : const Icon(
+                      Icons.phonelink_ring,
+                      color: Colors.white,
+                      size: 26,
+                    ),
               )
             ],
           ),
@@ -210,10 +182,6 @@ class _HomeTabPageState extends State<HomeTabPage> {
     ref.onDisconnect();
     ref.remove();
     ref = null;
-
-    Future.delayed(Duration(seconds: 2), () {
-      SystemChannels.platform.invokeMethod('SystemNavigator.pop');
-    });
     
   }
 }
