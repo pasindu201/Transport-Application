@@ -3,6 +3,8 @@ import '../user_global/global.dart';
 import '../user_screens/main_screen.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
+import '../user_screens/trip_details.dart';
+
 class Home extends StatefulWidget {
   const Home({super.key});
 
@@ -142,7 +144,7 @@ class _HomeState extends State<Home> {
             child: ElevatedButton(
               onPressed: () {
                 Fluttertoast.showToast(msg: "${selectedCategory}");
-                Navigator.push(context, MaterialPageRoute(builder: (c) => UserMainScreen(category: selectedCategory)));
+                Navigator.push(context, MaterialPageRoute(builder: (c) => TripDetails(category: selectedCategory)));
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,

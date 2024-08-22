@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:users/driver_screens/login_screen.dart';
 import 'package:users/driver_screens/register_screen.dart';
 import 'package:users/driver_tab_pages/home.dart';
+import 'package:users/user_global/global.dart';
 import 'driver_screens/main_screen.dart';
 import 'driver_screens/trip_started.dart';
 import 'driver_screens/vehicle_info_screen.dart';
@@ -11,6 +12,7 @@ import 'user_screens/forgot_password_screen.dart';
 import 'user_screens/home_screen.dart';
 import 'user_screens/login_screen.dart';
 import 'user_screens/main_screen.dart';
+import 'user_screens/rating_page.dart';
 import 'user_screens/register_screen.dart';
 import '../splash_screen/splash_screen.dart';
 import '../theme_provider/theme_provider.dart';
@@ -41,7 +43,7 @@ class MyApp extends StatelessWidget {
           themeMode: ThemeMode.system,
           theme: MyThemes.lightTheme,
           darkTheme: MyThemes.darkTheme,
-          home: const UserHomePage(),
+          home: RatingPage(driverId: '1', pickUpAddress: '1', destinationAddress: '1'),
         )
     );
   }

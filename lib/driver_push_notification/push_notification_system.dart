@@ -58,6 +58,10 @@ class PushNotificationSystem{
 
             String userName = (snapData.snapshot.value! as Map)["userName"];
             String userPhone = (snapData.snapshot.value! as Map)["userPhone"];
+            String catogory = (snapData.snapshot.value! as Map)["serviceType"];
+            String capacity = (snapData.snapshot.value! as Map)["capacity"];
+            String weight = (snapData.snapshot.value! as Map)["weight"];
+            String instructions = (snapData.snapshot.value! as Map)["instructions"];
 
             String? rideRequestId = snapData.snapshot.key;
 
@@ -68,19 +72,14 @@ class PushNotificationSystem{
             userRideRequestDetails.destinationAddress = destinationAddress;
             userRideRequestDetails.userName = userName;
             userRideRequestDetails.userPhone = userPhone;
+            userRideRequestDetails.serviceType = catogory;
+            userRideRequestDetails.capacity = capacity;
+            userRideRequestDetails.weight = weight;
+            userRideRequestDetails.instructions = instructions;
 
             userRideRequestDetails.rideRequestId = rideRequestId;
 
             showSimpleDialog(userRideRequestDetails, context);
-
-            // showDialog(
-            //   context: context,
-            //   builder: (BuildContext context) {
-            //     return NotificationDialogBox(
-            //       userRideRequestInformation: userRideRequestDetails,
-            //     );
-            //   },
-            // );
           }
           else {
             Fluttertoast.showToast(msg: "This Ride request do not exist");

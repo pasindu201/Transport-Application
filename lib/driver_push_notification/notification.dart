@@ -96,6 +96,56 @@ void showSimpleDialog(UserRideRequestInformation userRideRequestDetails, BuildCo
                 ),
               ],
             ),
+            SizedBox(height: 8),
+            const Divider(color: Colors.grey, thickness: 1,),
+            Row(
+              children: [
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "Catogory: ${userRideRequestDetails.serviceType}",
+                    style: TextStyle(color: darkTheme ? Colors.white70 : Colors.black),
+                  ),
+                ),
+              ],
+            ),  
+            SizedBox(height: 8),
+            const Divider(color: Colors.grey, thickness: 1,),
+            Row(
+              children: [
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "Capacity: ${userRideRequestDetails.capacity}",
+                    style: TextStyle(color: darkTheme ? Colors.white70 : Colors.black),
+                  ),
+                ),
+              ],
+            ),        
+            SizedBox(height: 8),
+            Row(
+              children: [
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "Weight: ${userRideRequestDetails.weight}",
+                    style: TextStyle(color: darkTheme ? Colors.white70 : Colors.black),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            Row(
+              children: [
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "Instructions: ${userRideRequestDetails.instructions}",
+                    style: TextStyle(color: darkTheme ? Colors.white70 : Colors.black),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
         actions: [

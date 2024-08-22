@@ -157,7 +157,7 @@ class _HomeTabPageState extends State<HomeTabPage> {
     Geofire.initialize("activeDrivers");
     Geofire.setLocation(currentUser!.uid, driverCurrentPosition!.latitude, driverCurrentPosition!.longitude);
 
-    DatabaseReference ref = FirebaseDatabase.instance.ref().child("drivers").child(currentUser!.uid).child("newRidewStatus");
+    DatabaseReference ref = FirebaseDatabase.instance.ref().child("drivers").child(currentUser!.uid).child("newRideStatus");
     ref.set("idle");
     ref.onValue.listen((event) {});
   }
@@ -177,7 +177,7 @@ class _HomeTabPageState extends State<HomeTabPage> {
 
   void setDriverOffline() {
     Geofire.removeLocation(currentUser!.uid);
-    DatabaseReference? ref = FirebaseDatabase.instance.ref().child("drivers").child(currentUser!.uid).child("newRidewStatus");
+    DatabaseReference? ref = FirebaseDatabase.instance.ref().child("drivers").child(currentUser!.uid).child("newRideStatus");
 
     ref.onDisconnect();
     ref.remove();

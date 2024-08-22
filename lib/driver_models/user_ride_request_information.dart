@@ -8,7 +8,10 @@ class UserRideRequestInformation {
   String? rideRequestId;
   String? userName;
   String? userPhone;
-  String? carType;
+  String? serviceType;
+  String? capacity;
+  String? weight;
+  String? instructions;
 
   UserRideRequestInformation({
     this.originLatLng,
@@ -18,6 +21,9 @@ class UserRideRequestInformation {
     this.rideRequestId,
     this.userName,
     this.userPhone,
-    this.carType,
+    this.serviceType,
+    this.capacity,
+    this.weight,
+    this.instructions,
   });
 }

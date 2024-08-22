@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../driver_tab_pages/home.dart';
 import '../driver_tab_pages/profile.dart';
-import '../driver_tab_pages/activity.dart'; // Add your Earnings page
+import '../driver_tab_pages/ratings.dart'; // Add your Earnings page
 import '../driver_tab_pages/notifications.dart'; // Add your Notifications page
 
 class DriverMainScreen extends StatefulWidget {
@@ -44,7 +44,7 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
         index: _bottomBarIndex,
         children: [
           HomeTabPage(key: PageStorageKey('home')),
-          ActivityTabPage(key: PageStorageKey('earnings')), // Your Earnings page
+          RatingsPage(key: PageStorageKey('ratings')), // Your Earnings page
           NotificationsTabPage(key: PageStorageKey('notifications')), // Your Notifications page
           DriverProfilePage(key: PageStorageKey('profile')),
         ],
@@ -65,11 +65,11 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.location_on),
-              label: 'Earnings', // Update label for the Earnings page
+              label: 'Ratings', 
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.notifications),
-              label: 'Notifications', // Update label for the Notifications page
+              label: 'Notifications', 
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.person),

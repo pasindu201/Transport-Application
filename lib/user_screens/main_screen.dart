@@ -21,12 +21,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:firebase_database/firebase_database.dart';
+
 import '../user_widgets/pay_fare_amount_dialog.dart';
 
 class UserMainScreen extends StatefulWidget {
-  String? category;
+  String? serviceType;
+  String? capacity;
+  String? weight;
+  String? instructions;
   
-  UserMainScreen({required this.category});
+  UserMainScreen({required this.serviceType, required this.capacity, required this.weight, required this.instructions});
 
   @override
   State<UserMainScreen> createState() => _UserMainScreenState();
@@ -92,13 +96,10 @@ class _UserMainScreenState extends State<UserMainScreen> {
         desiredAccuracy: LocationAccuracy.high);
     userCurrentPosition = cPosition;
 
-    LatLng latLngPosition =
-        LatLng(userCurrentPosition!.latitude, userCurrentPosition!.longitude);
-    CameraPosition cameraPosition =
-        CameraPosition(target: latLngPosition, zoom: 15);
+    LatLng latLngPosition = LatLng(userCurrentPosition!.latitude, userCurrentPosition!.longitude);
+    CameraPosition cameraPosition = CameraPosition(target: latLngPosition, zoom: 15);
 
-    newGoogleMapController!
-        .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+    newGoogleMapController!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
 
     String humanReadableAddress =
         await AssistantMethods.searchAddressForGeographicCoordinates(
@@ -318,26 +319,6 @@ class _UserMainScreenState extends State<UserMainScreen> {
     });
   }
 
-  // Future<void> getAddressFromLatLng() async {
-  //   try {
-  //     GeoData data = await Geocoder2.getDataFromCoordinates(
-  //         latitude: pickLocation!.latitude,
-  //         longitude: pickLocation!.longitude,
-  //         googleMapApiKey: mapkey
-  //     );
-  //     setState(() {
-  //       Directions userPichUpAddress = Directions();
-  //       userPichUpAddress.locationLatitude = pickLocation!.latitude;
-  //       userPichUpAddress.locationLongitude = pickLocation!.longitude;
-  //       userPichUpAddress.locationName = data.address;
-  //
-  //       Provider.of<AppInfo>(context, listen: false).updatePickUpLocationAddress(userPichUpAddress);
-  //     });
-  //   } catch (e){
-  //     print(e);
-  //   }
-  // }
-
   void  showSuggestedRideContainer(){
     setState(() {
       suggestedRidesContainerHeight = 400;
@@ -361,7 +342,7 @@ class _UserMainScreenState extends State<UserMainScreen> {
     }
   }
 
-  saveRideRequestInformation(String selectedVehicleType){
+  saveRideRequestInformation(){
     referenceRideRequest = FirebaseDatabase.instance.ref().child("All Ride Requests").push();
 
     var originLocation = Provider.of<AppInfo>(context, listen: false).userPickUpLocation;
@@ -385,84 +366,17 @@ class _UserMainScreenState extends State<UserMainScreen> {
       "userPhone":userModelCurrentinfo!.phone,
       "originAddress":originLocation.locationName,
       "destinationAddress":destinationLocation!.locationName,
-      "driverId":"waiting"
+      "driverId":"waiting",
+      "serviceType":widget.serviceType,
+      "capacity":widget.capacity,
+      "weight":widget.weight,
+      "instructions":widget.instructions,
     };
 
     referenceRideRequest!.set(userInformationMap);
 
-    tripRideRequestInfoStreamSubscription = referenceRideRequest!.onValue.listen((eventSnap) async{
-      if(eventSnap.snapshot.value == null){
-        return;
-      }
-      if((eventSnap.snapshot.value as Map)["car_details"] != null){
-        setState(() {
-          driverCarDetails = (eventSnap.snapshot.value as Map)["car_details"].toString();
-        });
-      }
-      if((eventSnap.snapshot.value as Map)["driverPhone"] != null){
-        setState(() {
-          driverCarDetails = (eventSnap.snapshot.value as Map)["driverPhone"].toString();
-        });
-      }
-      if((eventSnap.snapshot.value as Map)["driverName"] != null){
-        setState(() {
-          driverCarDetails = (eventSnap.snapshot.value as Map)["driverName"].toString();
-        });
-      }
-      if((eventSnap.snapshot.value as Map)["status"] != null){
-        setState(() {
-          userRideRequestStatus = (eventSnap.snapshot.value as Map)["status"].toString();
-        });
-      }
-
-      if((eventSnap.snapshot.value as Map)["driver_location"] != null) {
-        double driverCurrentPositionLat = double.parse((eventSnap.snapshot.value as Map)["driverLocation"]["latitude"].toString());
-        double driverCurrentPositionLng = double.parse((eventSnap.snapshot.value as Map)["driverLocation"]["longitude"].toString());
-
-        LatLng driverCurrentPositionLatLng = LatLng(driverCurrentPositionLat, driverCurrentPositionLng);
-
-        if(userRideRequestStatus == "accepted"){
-          updateArrivalTimeToUserPickUpLocation(driverCurrentPositionLatLng);
-        }
-
-        if(userRideRequestStatus == "arrived"){
-          setState(() {
-            driverRideStatus = "Driver has arrived";
-          });
-        }
-
-        if(userRideRequestStatus =="ontrip"){
-          updateReachingTimeToUserDropOffLocation(driverCurrentPositionLatLng);
-        }
-
-        if(userRideRequestStatus == "ended"){
-          if((eventSnap.snapshot.value as Map)["fareAmount"] != null){
-            double fareAmount = double.parse((eventSnap.snapshot.value as Map)["fareAmount"].toString());
-
-            var response = await showDialog(
-                context: context,
-                builder: (BuildContext context) => PayFareAmountDialog(
-                  fareAmount: fareAmount,
-                )
-            );
-
-            if(response == "Cash Paid"){
-              if((eventSnap.snapshot.value as Map)["driverId"] == null){
-                String assignedDriverId = (eventSnap.snapshot.value as Map)["driverId"].toString();
-                // Navigator.push(context, MaterialPageRoute(builder: (c)=>RateDriverScreen()));
-
-                referenceRideRequest!.onDisconnect();
-                tripRideRequestInfoStreamSubscription!.cancel();
-              }
-            }
-          }
-        }
-
-      }
-    });
-
     onlineNearByAvailableDriversList = GeofireAssistant.activeNearbyDriverList;
-    searchNearestOnlineDrivers(selectedVehicleType);
+    searchNearestOnlineDrivers();
 
   }
 
@@ -473,28 +387,7 @@ class _UserMainScreenState extends State<UserMainScreen> {
    
   }
 
-  updateReachingTimeToUserDropOffLocation(driverCurrentPositionLatLng) async{
-    if(requestPositionInfo == true){
-      requestPositionInfo = false;
-
-      var dropOffLocation = Provider.of<AppInfo>(context, listen: false).userDropOffLocation;
-      LatLng userDestinationPosition = LatLng(dropOffLocation!.locationLatitude!, dropOffLocation.locationLongitude!);
-
-      var directionDetailsInfo = await AssistantMethods.obtainOriginToDestinationDirectionDetails(driverCurrentPositionLatLng, userDestinationPosition);
-
-      if(directionDetailsInfo == null){
-        return;
-      }
-
-      setState(() {
-        driverRideStatus = "Going towards destination...";
-      });
-
-      requestPositionInfo = true;
-    }
-  }
-
-  searchNearestOnlineDrivers(String selectedVehicleType) async{
+  searchNearestOnlineDrivers() async{
     if(onlineNearByAvailableDriversList.length == 0) {
       //cancel/delete the ride request information.
       referenceRideRequest!.remove();
@@ -521,7 +414,6 @@ class _UserMainScreenState extends State<UserMainScreen> {
     print("driversList: " + driversList.toString());
 
     for (int i = 0; i < driversList.length; i++) {
-      if (driversList[i]["vehicle_details"]["service"] == widget.category) {
         if (referenceRideRequest?.key != null) {
           AssistantMethods.sendNotificationToSelectedDriver(
             driversList[i]["token"], 
@@ -529,19 +421,27 @@ class _UserMainScreenState extends State<UserMainScreen> {
             referenceRideRequest!.key!
           );
         }
-      }
     }
+
+    Fluttertoast.showToast(msg: "Notification sent Successfully...");
 
     showSearchingForDriversContainer();
 
     await FirebaseDatabase.instance.ref().child("All Ride Requests").child(referenceRideRequest!.key!).child("driverId").onValue.listen((eventRideRequestSnapShot) {
       print("EventSnapshot: + ${eventRideRequestSnapShot.snapshot.value}");
-      if(eventRideRequestSnapShot.snapshot.value != "waiting"){
-         showUIForAssignedDriverInfo(eventRideRequestSnapShot.snapshot.value.toString());
-         Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => DriverComming(driverId: eventRideRequestSnapShot.snapshot.value.toString(),)));
+      if (eventRideRequestSnapShot.snapshot.value != "waiting") {
+        // Navigate to the DriverComming page
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DriverComming(
+              driverId: eventRideRequestSnapShot.snapshot.value.toString(),
+              rideRequestId: referenceRideRequest!.key!
+            ),
+          ),
+        );
       }
-    });
-    
+    });  
   }
 
   retriveOnlineDriversInformation(List onlineNearestDriversList) async{
@@ -550,25 +450,12 @@ class _UserMainScreenState extends State<UserMainScreen> {
 
     for(int i=0; i<onlineNearestDriversList.length; i++){
       await ref.child(onlineNearestDriversList[i].driverId.toString()).once().then((dataSnapshot){
-         var driverKeyInfo = dataSnapshot.snapshot.value;
+        var driverKeyInfo = dataSnapshot.snapshot.value;
 
-         driversList.add(driverKeyInfo);
-         print("Driver key information = ${driversList.toString()}");
+        driversList.add(driverKeyInfo);
+        print("Driver key information = ${driversList.toString()}");
       });
     }
-  }
-
-  showUIForAssignedDriverInfo(String driverId) async {
-    DatabaseReference ref = FirebaseDatabase.instance.ref().child("drivers").child(driverId).child("car_details");
-    driverName = await ref.child("driverName").once().then((dataSnapShot){
-      return dataSnapShot.snapshot.value.toString();
-    });
-    setState(() {
-      waitingResponsefromDriverContainerHeight = 0;
-      searchLocationContainerHeight = 0;
-      assignedDriverContainerHeight = 200;
-      suggestedRidesContainerHeight = 0;
-    });
   }
 
   checkIfLocationPermissionAllowed() async {
@@ -617,27 +504,7 @@ class _UserMainScreenState extends State<UserMainScreen> {
                 });
                 locateUserPossion();
               },
-
-              // onCameraMove: (CameraPosition position) {
-              //   if (pickLocation != position.target) {
-              //     setState(() {
-              //       pickLocation = position.target;
-              //     });
-              //   }
-              // },
-              // onCameraIdle: () {
-              //   getAddressFromLatLng();
-              // },
             ),
-            // Align(
-            //   alignment: Alignment.center,
-            //   child: Padding(
-            //     padding: const EdgeInsets.only(bottom: 35.0),
-            //     child: Image.asset("images/pick.png", height: 45, width: 45),
-            //   ),
-            // ),
-
-            // custom hamburger button for drawer
             Positioned(
                 top: 50,
                 left: 20,
@@ -864,14 +731,14 @@ class _UserMainScreenState extends State<UserMainScreen> {
                                 ElevatedButton(
                                   onPressed: () {
                                     if(Provider.of<AppInfo>(context, listen: false).userDropOffLocation != null){
-                                      showSuggestedRideContainer();
+                                      saveRideRequestInformation();
                                     }
                                     else{
                                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please select Destination location"),));
                                     }
                                   },
                                   child: Text(
-                                    "Show Fare",
+                                    "Find a Driver",
                                     style: TextStyle(
                                       color: darkTheme
                                           ? Colors.black
@@ -896,254 +763,6 @@ class _UserMainScreenState extends State<UserMainScreen> {
                   ),
                 )
               ),
-
-            //Ui for suggested rides
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                height: suggestedRidesContainerHeight,
-                decoration: BoxDecoration(
-                  color: darkTheme? Colors.black : Colors.white,
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: darkTheme? Colors.amber.shade400 : Colors.blue,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                          child: Icon(
-                            Icons.star,
-                            color: Colors.white,
-                          ),
-                        ),
-
-                        SizedBox(width: 15,),
-
-                        Text(
-                          Provider.of<AppInfo>(context).userPickUpLocation != null
-                              ? (Provider.of<AppInfo>(context).userPickUpLocation!.locationName!).substring(0, 24) + "..."
-                              : "Not getting Address",
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    SizedBox(height: 20,),
-
-                    Row(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: Colors.grey,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                          child: Icon(
-                            Icons.star,
-                            color: Colors.white,
-                          ),
-                        ),
-
-                        SizedBox(width: 15,),
-
-                        Text(
-                          Provider.of<AppInfo>(context).userDropOffLocation != null &&
-                              Provider.of<AppInfo>(context).userDropOffLocation!.locationName != null
-                              ? (Provider.of<AppInfo>(context).userDropOffLocation!.locationName!.length > 24
-                              ? Provider.of<AppInfo>(context).userDropOffLocation!.locationName!.substring(0, 24) + "..."
-                              : Provider.of<AppInfo>(context).userDropOffLocation!.locationName!)
-                              : "Where to?",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    SizedBox(height: 20,),
-
-                    Text("SUGGESTED RIDES",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                      
-                    SizedBox(height: 20,),
-
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          GestureDetector(
-                            onTap: (){
-                              setState(() {
-                                selectedVehicleType = "Car";
-                              });
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: selectedVehicleType == "Car"? (darkTheme? Colors.amber.shade400:Colors.blue):(darkTheme? Colors.black54:Colors.grey[100]),
-                                borderRadius: BorderRadius.circular(12)
-                              ),
-                              child: Padding(
-                                padding: EdgeInsets.all(25.0),
-                                child: Column(
-                                  children: [
-                                    Image.asset("images/R.png", scale: 1,),
-                                    SizedBox(height: 12,),
-                                    Text("Car",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: selectedVehicleType == "Car"? (darkTheme? Colors.black:Colors.white):(darkTheme? Colors.white:Colors.black),
-                                    ),
-                                    ),
-                                    SizedBox(height: 2,),
-                                    Text(tripDirectionDetailsInfo != null? "${AssistantMethods.calculateFareAmountFromOriginToDestination(tripDirectionDetailsInfo!)} LKR"
-                                    : "no",
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                    ),
-                                    ),
-
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          SizedBox(width: 10,),
-
-                          GestureDetector(
-                            onTap: (){
-                              setState(() {
-                                selectedVehicleType = "Bike";
-                              });
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                  color: selectedVehicleType == "Bike"? (darkTheme? Colors.amber.shade400:Colors.blue):(darkTheme? Colors.black54:Colors.grey[100]),
-                                  borderRadius: BorderRadius.circular(12)
-                              ),
-                              child: Padding(
-                                padding: EdgeInsets.all(25.0),
-                                child: Column(
-                                  children: [
-                                    Image.asset("images/bike_side.png", scale: 1,),
-                                    SizedBox(height: 12,),
-                                    Text("Bike",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: selectedVehicleType == "Bike"? (darkTheme? Colors.black:Colors.white):(darkTheme? Colors.white:Colors.black),
-                                      ),
-                                    ),
-                                    SizedBox(height: 2,),
-                                    Text(tripDirectionDetailsInfo != null? "${AssistantMethods.calculateFareAmountFromOriginToDestination(tripDirectionDetailsInfo!)} LKR"
-                                        : "no",
-                                      style: TextStyle(
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          SizedBox(width: 10,),
-
-                          GestureDetector(
-                            onTap: (){
-                              setState(() {
-                                selectedVehicleType = "Lorry";
-                              });
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                  color: selectedVehicleType == "Lorry"? (darkTheme? Colors.amber.shade400:Colors.blue):(darkTheme? Colors.black54:Colors.grey[100]),
-                                  borderRadius: BorderRadius.circular(12)
-                              ),
-                              child: Padding(
-                                padding: EdgeInsets.all(25.0),
-                                child: Column(
-                                  children: [
-                                    Image.asset("images/lorry.png", scale: 1,),
-                                    SizedBox(height: 12,),
-                                    Text("Lorry",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: selectedVehicleType == "Lorry"? (darkTheme? Colors.black:Colors.white):(darkTheme? Colors.white:Colors.black),
-                                      ),
-                                    ),
-                                    SizedBox(height: 2,),
-                                    Text(tripDirectionDetailsInfo != null? "${AssistantMethods.calculateFareAmountFromOriginToDestination(tripDirectionDetailsInfo!)} LKR"
-                                        : "no",
-                                      style: TextStyle(
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-
-                                  ],
-                                ),
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    )  ,
-
-                      SizedBox(height: 20,),
-
-                      Expanded(
-                          child: GestureDetector(
-                            onTap: (){
-                              if(selectedVehicleType != ""){
-                                saveRideRequestInformation(selectedVehicleType);
-                              }
-                              else{
-                                Fluttertoast.showToast(msg: "Please select a vehicle from suggested Rides.");
-                              }
-                            },
-                            child: Container(
-                              padding: EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: darkTheme? Colors.amber.shade400 : Colors.blue,
-                                borderRadius: BorderRadius.circular(10)
-                              ),
-                              child: Center(
-                                child: Text(
-                                  "Request a Ride",
-                                  style: TextStyle(
-                                    color: darkTheme? Colors.black : Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                      ),
-
-                   ],
-                  ),
-                ),
-              )
-            ),
 
             Positioned(
               bottom: 0,
@@ -1217,80 +836,6 @@ class _UserMainScreenState extends State<UserMainScreen> {
                 ),
               ),
               ),
-
-              //UI for assigned driver
-              Positioned(
-                bottom:0,
-                left:0,
-                right:0,
-                child:Container(
-                  height: assignedDriverContainerHeight,
-                  decoration: BoxDecoration(
-                    color: darkTheme? Colors.black : Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Column(
-                      children: [
-                        Text(driverRideStatus, style: TextStyle(fontWeight: FontWeight.bold),),
-                        SizedBox(height: 5,),
-                        Divider(thickness: 1, color: darkTheme? Colors.amber.shade400 : Colors.blue,),
-                        SizedBox(height: 5,),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: darkTheme? Colors.amber.shade400 : Colors.lightBlue,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Icon(Icons.person, color: Colors.white,),
-                                ),
-                                SizedBox(width: 10,),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text("Driver Name", style: TextStyle(fontWeight: FontWeight.bold),),
-                                    Text(driverName, style: TextStyle(color: Colors.grey),),
-                                  ],
-                                )
-                              ],
-                              )
-                          ],
-                          )
-                      ],
-                    ),
-                    ),
-                ),
-              ),
-
-            // Positioned(
-            //   top: 40,
-            //   right: 20,
-            //   left: 20,
-            //   child: Container(
-            //     decoration: BoxDecoration(
-            //       border: Border.all(color: Colors.black),
-            //       color: Colors.white,
-            //     ),
-            //     padding: EdgeInsets.all(20),
-            //     child: Text(
-            //       Provider.of<AppInfo>(context).userPickUpLocation != null
-            //           ? (Provider.of<AppInfo>(context)
-            //                       .userPickUpLocation!
-            //                       .locationName!)
-            //                   .substring(0, 24) +
-            //               "..."
-            //           : "Not getting Address",
-            //       overflow: TextOverflow.visible,
-            //       softWrap: true,
-            //     ),
-            //   ),
-            // ),
           ],
         ),
       ),

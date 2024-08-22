@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:users/driver_screens/pick_up.dart';
 import './../driver_models/user_ride_request_information.dart';
 import './../driver_global/map_key.dart';
 import 'trip_started.dart';
@@ -25,6 +26,9 @@ class _NewTripScreenState extends State<NewTripScreen> {
   Set<Circle> circleSet = {};
   double bottomPaddingOfMap = 0;
 
+  late BitmapDescriptor customIcon;  
+  late BitmapDescriptor flagIcon;   
+
   static final CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(6.9271, 79.8612),
     zoom: 14,
@@ -33,22 +37,54 @@ class _NewTripScreenState extends State<NewTripScreen> {
   late StreamSubscription<Position> _positionStreamSubscription;
 
   // Hardcoded destination latitude and longitude for Colombo
-  late LatLng destinationLatLng = widget.userRideRequestDetails!.originLatLng!; 
+  late LatLng destinationLatLng = widget.userRideRequestDetails?.originLatLng ?? LatLng(0.0, 0.0); 
 
   // To store the distance
   double distanceToDestination = 0;
 
+  bool hasTriggeredNearDestination = false;
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); 
+
   @override
   void initState() {
     super.initState();
+    _loadCustomIcons(); 
     _startLocationUpdates();
   }
 
+  void _addDestinationMarker() {
+    Marker destinationMarker = Marker(
+      markerId: MarkerId("destination"),
+      position: destinationLatLng,
+      infoWindow: InfoWindow(title: "Destination"),
+      icon: flagIcon, // Use the flag icon
+    );
+
+    setState(() {
+      markerSet.add(destinationMarker);
+    });
+  }
+
+  // Function to load the custom icons
+  void _loadCustomIcons() async {
+    customIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(size: Size(30, 30)),
+      'images/driver_location.png',
+    );
+
+    flagIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(size: Size(30, 30)),
+      'images/destination.png',
+    );
+
+    _addDestinationMarker(); // Add the destination marker once icons are loaded
+  }
+
   void _startLocationUpdates() {
-    _positionStreamSubscription = Geolocator.getPositionStream(
-    ).listen((Position position) {
+    _positionStreamSubscription = Geolocator.getPositionStream().listen((Position position) {
       LatLng userLatLng = LatLng(position.latitude, position.longitude);
-      print("User Location: ${userLatLng.latitude}, ${userLatLng.longitude}"); // Debugging line
+      print("User Location: ${userLatLng.latitude}, ${userLatLng.longitude}"); 
       _updateMap(userLatLng);
       _drawPolyline(userLatLng, destinationLatLng);
       _calculateDistance(userLatLng, destinationLatLng);
@@ -56,24 +92,26 @@ class _NewTripScreenState extends State<NewTripScreen> {
   }
 
   void _updateMap(LatLng userLatLng) async {
-    CameraPosition cameraPosition = CameraPosition(
-      target: userLatLng,
-      zoom: 12,
-    );
+    if (newGoogleMapController != null) {
+      CameraPosition cameraPosition = CameraPosition(
+        target: userLatLng,
+        zoom: 12,
+      );
 
-    newGoogleMapController!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+      newGoogleMapController!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
 
-    Marker currentLocationMarker = Marker(
-      markerId: MarkerId("currentLocation"),
-      position: userLatLng,
-      infoWindow: InfoWindow(title: "Current Location"),
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-    );
+      Marker currentLocationMarker = Marker(
+        markerId: MarkerId("currentLocation"),
+        position: userLatLng,
+        infoWindow: InfoWindow(title: "Current Location"),
+        icon: customIcon, // Use the custom icon for the current location
+      );
 
-    setState(() {
-      markerSet.removeWhere((marker) => marker.markerId.value == "currentLocation");
-      markerSet.add(currentLocationMarker);
-    });
+      setState(() {
+        markerSet.removeWhere((marker) => marker.markerId.value == "currentLocation");
+        markerSet.add(currentLocationMarker);
+      });
+    }
   }
 
   void _drawPolyline(LatLng startLatLng, LatLng endLatLng) async {
@@ -110,18 +148,17 @@ class _NewTripScreenState extends State<NewTripScreen> {
     );
 
     setState(() {
-      distanceToDestination = distanceInMeters/1000;
+      distanceToDestination = distanceInMeters / 1000;
     });
 
-    if (distanceInMeters <= 100) {
+    if (distanceInMeters <= 100 && !hasTriggeredNearDestination) {
+      hasTriggeredNearDestination = true;
       _onNearDestination();
     }
   }
 
   void _onNearDestination() {
-    // Trigger your function here
-    print("You are within 100 meters of the destination!");
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => TripStarted(userRideRequestDetails: widget.userRideRequestDetails!)));
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => PickUpPage(userRideRequestDetails: widget.userRideRequestDetails!)));
   }
 
   @override
@@ -137,6 +174,72 @@ class _NewTripScreenState extends State<NewTripScreen> {
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
+        key: _scaffoldKey,  // Assign the key to the Scaffold
+        appBar: AppBar(
+          title: Text(
+            "On the way to pick up",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          
+          backgroundColor: Colors.blueAccent,
+          leading: IconButton(
+            icon: Icon(Icons.menu),
+            onPressed: () {
+              _scaffoldKey.currentState!.openDrawer(); // Open drawer
+            },
+          ),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.info_outline),
+              onPressed: () {
+                // Handle info icon tap
+              },
+            ),
+          ],
+        ),
+        drawer: Drawer(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                ),
+                child: Text(
+                  'Ride Details',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                  ),
+                ),
+              ),
+              ListTile(
+                title: Text('User Name: ${widget.userRideRequestDetails?.userName ?? "N/A"}'),
+              ),
+              ListTile(
+                title: Text('User Phone: ${widget.userRideRequestDetails?.userPhone ?? "N/A"}'),
+              ),
+              ListTile(
+                title: Text('Origin Address: ${widget.userRideRequestDetails?.originAddress ?? "N/A"}'),
+              ),
+              ListTile(
+                title: Text('Destination Address: ${widget.userRideRequestDetails?.destinationAddress ?? "N/A"}'),
+              ),
+              ListTile(
+                title: Text('Service Type: ${widget.userRideRequestDetails?.serviceType ?? "N/A"}'),
+              ),
+              ListTile(
+                title: Text('Capacity: ${widget.userRideRequestDetails?.capacity ?? "N/A"}'),
+              ),
+              ListTile(
+                title: Text('Weight: ${widget.userRideRequestDetails?.weight ?? "N/A"}'),
+              ),
+              ListTile(
+                title: Text('Instructions: ${widget.userRideRequestDetails?.instructions ?? "N/A"}'),
+              ),
+            ],
+          ),
+        ),
         body: Stack(
           children: [
             GoogleMap(
@@ -149,7 +252,9 @@ class _NewTripScreenState extends State<NewTripScreen> {
               markers: markerSet,
               circles: circleSet,
               onMapCreated: (GoogleMapController controller) {
-                _controllerGoogleMap.complete(controller);
+                if (!_controllerGoogleMap.isCompleted) {
+                  _controllerGoogleMap.complete(controller);
+                }
                 newGoogleMapController = controller;
 
                 setState(() {
@@ -157,6 +262,7 @@ class _NewTripScreenState extends State<NewTripScreen> {
                 });
               },
             ),
+            
             Positioned(
               bottom: 10 + bottomPaddingOfMap,
               left: 10,
@@ -164,7 +270,7 @@ class _NewTripScreenState extends State<NewTripScreen> {
                 color: Colors.white,
                 padding: EdgeInsets.all(10),
                 child: Text(
-                  "Distance : ${distanceToDestination.toStringAsFixed(2)} km",
+                  "Distance to PickUp : ${distanceToDestination.toStringAsFixed(2)} km",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

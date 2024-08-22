@@ -4,13 +4,31 @@ import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:firebase_database/firebase_database.dart';
-import './../driver_models/user_ride_request_information.dart';
 import './../driver_global/map_key.dart';
+import 'rating_page.dart';
 
 class DriverPath extends StatefulWidget {
   final String driverId;
-  
-  DriverPath({required this.driverId});
+  final String driverName;
+  final String driverPhone;
+  final String vehicleNumber;
+
+  final String pickUpLocationAddress;
+  final String destinationLocationAddress;
+
+  LatLng? pickUpLatLng;
+  LatLng? destinationLatLng;
+
+  DriverPath({
+    required this.driverId,
+    required this.driverName,
+    required this.driverPhone,
+    required this.vehicleNumber,
+    required this.pickUpLocationAddress,
+    required this.destinationLocationAddress,
+    this.pickUpLatLng,
+    this.destinationLatLng,
+  });
 
   @override
   State<DriverPath> createState() => _DriverPathState();
@@ -38,7 +56,7 @@ class _DriverPathState extends State<DriverPath> {
   @override
   void initState() {
     super.initState();
-    destinationLatLng = LatLng(6.9271, 79.8612); // Set your actual destination coordinates here
+    destinationLatLng = widget.destinationLatLng!;
     _startTrackingDriverLocation();
   }
 
@@ -57,7 +75,6 @@ class _DriverPathState extends State<DriverPath> {
         LatLng driverLatLng = LatLng(driverLat, driverLng);
 
         _updateMap(driverLatLng);
-        _drawPolyline(driverLatLng, destinationLatLng);
         _calculateDistance(driverLatLng, destinationLatLng);
       }
     });
@@ -84,30 +101,6 @@ class _DriverPathState extends State<DriverPath> {
     });
   }
 
-  void _drawPolyline(LatLng startLatLng, LatLng endLatLng) async {
-    PolylinePoints polylinePoints = PolylinePoints();
-    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-      mapkey, 
-      PointLatLng(startLatLng.latitude, startLatLng.longitude),
-      PointLatLng(endLatLng.latitude, endLatLng.longitude),
-    );
-
-    if (result.points.isNotEmpty) {
-      List<LatLng> polylineCoordinates = [];
-      for (var point in result.points) {
-        polylineCoordinates.add(LatLng(point.latitude, point.longitude));
-      }
-
-      setState(() {
-        polylineSet.add(Polyline(
-          polylineId: PolylineId("polyline"),
-          color: Colors.blue,
-          width: 5,
-          points: polylineCoordinates,
-        ));
-      });
-    }
-  }
 
   void _calculateDistance(LatLng driverLatLng, LatLng destinationLatLng) {
     double distanceInMeters = Geolocator.distanceBetween(
@@ -127,9 +120,32 @@ class _DriverPathState extends State<DriverPath> {
   }
 
   void _onNearDestination() {
-    // Trigger your function here
     print("Driver is within 100 meters of the destination!");
-    // Add any additional logic here, e.g., navigating to another screen or displaying a dialog.
+
+    // Show dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Near Destination"),
+          content: Text("Driver Came Near Destination"),
+          actions: [
+            TextButton(
+              child: Text("OK"),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => RatingPage(driverId: widget.driverId, pickUpAddress: widget.pickUpLocationAddress, destinationAddress: widget.destinationLocationAddress,),
+                ),
+              );
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -140,48 +156,90 @@ class _DriverPathState extends State<DriverPath> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-      },
-      child: Scaffold(
-        body: Stack(
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.destinationLocationAddress),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
           children: [
-            GoogleMap(
-              mapType: MapType.normal,
-              myLocationEnabled: true,
-              zoomControlsEnabled: true,
-              zoomGesturesEnabled: true,
-              initialCameraPosition: _kGooglePlex,
-              polylines: polylineSet,
-              markers: markerSet,
-              circles: circleSet,
-              onMapCreated: (GoogleMapController controller) {
-                _controllerGoogleMap.complete(controller);
-                newGoogleMapController = controller;
-
-                setState(() {
-                  bottomPaddingOfMap = 20;
-                });
-              },
-            ),
-            Positioned(
-              bottom: 10 + bottomPaddingOfMap,
-              left: 10,
-              child: Container(
-                color: Colors.white,
-                padding: EdgeInsets.all(10),
-                child: Text(
-                  "Distance : ${distanceToDestination.toStringAsFixed(2)} km",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Text(
+                'Trip Details',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
                 ),
               ),
             ),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text('Driver Name'),
+              subtitle: Text(widget.driverName),
+            ),
+            ListTile(
+              leading: Icon(Icons.phone),
+              title: Text('Driver Phone'),
+              subtitle: Text(widget.driverPhone),
+            ),
+            ListTile(
+              leading: Icon(Icons.directions_car),
+              title: Text('Vehicle Number'),
+              subtitle: Text(widget.vehicleNumber),
+            ),
+            ListTile(
+              leading: Icon(Icons.location_on),
+              title: Text('Pickup Location'),
+              subtitle: Text(widget.pickUpLocationAddress),
+            ),
+            ListTile(
+              leading: Icon(Icons.flag),
+              title: Text('Destination'),
+              subtitle: Text(widget.destinationLocationAddress),
+            ),
           ],
         ),
+      ),
+      body: Stack(
+        children: [
+          GoogleMap(
+            mapType: MapType.normal,
+            myLocationEnabled: true,
+            zoomControlsEnabled: true,
+            zoomGesturesEnabled: true,
+            initialCameraPosition: _kGooglePlex,
+            polylines: polylineSet,
+            markers: markerSet,
+            circles: circleSet,
+            onMapCreated: (GoogleMapController controller) {
+              _controllerGoogleMap.complete(controller);
+              newGoogleMapController = controller;
+
+              setState(() {
+                bottomPaddingOfMap = 20;
+              });
+            },
+          ),
+          Positioned(
+            bottom: 10 + bottomPaddingOfMap,
+            left: 10,
+            child: Container(
+              color: Colors.white,
+              padding: EdgeInsets.all(10),
+              child: Text(
+                "Distance: ${distanceToDestination.toStringAsFixed(2)} km",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

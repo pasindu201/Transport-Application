@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'main_screen.dart';
+
 class TripDetails extends StatefulWidget {
   final String? category;
 
@@ -14,24 +16,37 @@ class _TripDetailsState extends State<TripDetails> {
   final TextEditingController specialInstructionsTextEditingController = TextEditingController();
 
   // Variables for storing selected dropdown values
-  late String selectedServiceType = widget.category ?? "Transport";
-  String? selectedVehicleType;
+  late String selectedServiceType = widget.category ?? "General";
+  String? capacity;
   String? selectedWeight;
   String? instructions;
 
   // Sample data for dropdowns
   final List<String> serviceTypes = ["Transport", "General", "Car Parts", "Food Items", "Furniture", "Construction"];
-  final List<String> vehicleTypes = ["Car", "Motorbike", "Lorry", "Truck", "Van"];
+  final List<String> capacities = ["< 10 liters", "10-100 liters", "100-1000 liters", "1000-5000 liters", "> 5000 liters"];
   final List<String> weights = ["< 1 kg", "1-5 kg", "5-10 kg", "10-20 kg", "> 20 kg"];
 
   // Function to handle form submission
   void _submit() {
     if (_formKey.currentState!.validate()) {
-      // Process the form submission
-      print("Form Submitted");
-      // You can also add any other processing or navigation logic here
+      setState(() {
+        instructions = specialInstructionsTextEditingController.text;
+      });
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => UserMainScreen(
+            serviceType: selectedServiceType,
+            capacity: capacity,
+            weight: selectedWeight,
+            instructions: instructions,
+          ),
+        ),
+      );
     }
-  }
+ }
+
 
   // GlobalKey to manage form validation
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -99,7 +114,7 @@ class _TripDetailsState extends State<TripDetails> {
 
               DropdownButtonFormField<String>(
                 decoration: InputDecoration(
-                  hintText: "Vehicle Type",
+                  hintText: "Required Capacity",
                   prefixIcon: Icon(Icons.directions_car, color: darkTheme ? Colors.amber.shade400 : Colors.grey),
                   filled: true,
                   fillColor: darkTheme ? Colors.black45 : Colors.grey.shade200,
@@ -111,15 +126,15 @@ class _TripDetailsState extends State<TripDetails> {
                     ),
                   ),
                 ),
-                items: vehicleTypes.map((vehicle) {
+                items: capacities.map((capacity) {
                   return DropdownMenuItem(
-                    child: Text(vehicle, style: TextStyle(color: Colors.grey)),
-                    value: vehicle,
+                    child: Text(capacity, style: TextStyle(color: Colors.grey)),
+                    value: capacity,
                   );
                 }).toList(),
                 onChanged: (newValue) {
                   setState(() {
-                    selectedVehicleType = newValue;
+                    capacity = newValue;
                   });
                 },
                 validator: (value) {

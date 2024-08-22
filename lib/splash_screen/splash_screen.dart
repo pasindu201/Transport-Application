@@ -4,6 +4,7 @@ import '../driver_screens/main_screen.dart';
 import '../selection_screen.dart';
 import '../user_assistants/assistant_methods.dart';
 import '../user_global/global.dart';
+import '../user_screens/home_screen.dart';
 import '../user_screens/main_screen.dart';
 import 'package:firebase_database/firebase_database.dart';
 
@@ -45,7 +46,7 @@ class _SplashScreenState extends State<SplashScreen> {
           isDriver = true;
         }
         if (isUser) {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => Home()));
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => UserHomePage()));
         } else if (isDriver) {
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => const DriverMainScreen()));
         } else {

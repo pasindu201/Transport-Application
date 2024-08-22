@@ -149,7 +149,7 @@ class _PrecisePickupScreenState extends State<PrecisePickupScreen> {
                     fontSize: 16,
                   )
                 ),
-                child: Text(" set Current Location"),
+                child: Text(" set Location"),
               ),
             ),
           )
