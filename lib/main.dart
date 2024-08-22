@@ -43,7 +43,7 @@ class MyApp extends StatelessWidget {
           themeMode: ThemeMode.system,
           theme: MyThemes.lightTheme,
           darkTheme: MyThemes.darkTheme,
-          home: RatingPage(driverId: '1', pickUpAddress: '1', destinationAddress: '1'),
+          home: RatingsPage(driverId: '1', pickUpAddress: '1', destinationAddress: '1'),
         )
     );
   }

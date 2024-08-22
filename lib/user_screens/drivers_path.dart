@@ -137,7 +137,7 @@ class _DriverPathState extends State<DriverPath> {
                 Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => RatingPage(driverId: widget.driverId, pickUpAddress: widget.pickUpLocationAddress, destinationAddress: widget.destinationLocationAddress,),
+                  builder: (context) => RatingsPage(driverId: widget.driverId, pickUpAddress: widget.pickUpLocationAddress, destinationAddress: widget.destinationLocationAddress,),
                 ),
               );
               },
