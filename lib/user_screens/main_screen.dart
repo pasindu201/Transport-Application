@@ -434,7 +434,7 @@ class _UserMainScreenState extends State<UserMainScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => DriverComming(
+            builder: (context) => DriverComing(
               driverId: eventRideRequestSnapShot.snapshot.value.toString(),
               rideRequestId: referenceRideRequest!.key!
             ),

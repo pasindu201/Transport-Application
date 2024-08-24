@@ -3,29 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:users/driver_global/global.dart';
+import 'package:users/driver_screens/pick_up.dart';
 import './../driver_models/user_ride_request_information.dart';
 import './../driver_global/map_key.dart';
+import 'trip_started.dart';
 import 'package:firebase_database/firebase_database.dart';
-
-class DriverLocationService {
-  final DatabaseReference _databaseReference = FirebaseDatabase.instance.reference();
-
-  void updateDriverLocation(String driverId, Position position) {
-    _databaseReference.child('arriving_drivers').child(driverId).update({
-      'latitude': position.latitude,
-      'longitude': position.longitude,
-    }).then((_) {
-      print('Driver location updated successfully');
-    }).catchError((error) {
-      print('Failed to update driver location: $error');
-    });
-  }
-}
 
 class TripStarted extends StatefulWidget {
   final UserRideRequestInformation? userRideRequestDetails;
 
-  TripStarted({this.userRideRequestDetails});
+  TripStarted({required this.userRideRequestDetails});
 
   @override
   State<TripStarted> createState() => _TripStartedState();
@@ -40,58 +28,105 @@ class _TripStartedState extends State<TripStarted> {
   Set<Circle> circleSet = {};
   double bottomPaddingOfMap = 0;
 
+  late BitmapDescriptor customIcon;  
+  late BitmapDescriptor flagIcon;   
+
   static final CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(37.42796133580664, -122.085749655962),
-    zoom: 14.4746,
+    target: LatLng(6.9271, 79.8612),
+    zoom: 14,
   );
 
   late StreamSubscription<Position> _positionStreamSubscription;
 
-  // Hardcoded destination latitude and longitude for Colombo
-  static final LatLng destinationLatLng = LatLng(66.9271, 79.8612); // Colombo, Sri Lanka
-
   // To store the distance
   double distanceToDestination = 0;
 
-  final String driverId = 'your_driver_id'; 
-  final DriverLocationService _locationService = DriverLocationService();
+  bool hasTriggeredNearDestination = false;
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); 
+  LatLng? destinationLatLng;
 
   @override
   void initState() {
     super.initState();
+    _loadCustomIcons(); 
     _startLocationUpdates();
+    destinationLatLng = widget.userRideRequestDetails?.originLatLng;
+  }
+
+  void _addDestinationMarker() {
+    Marker destinationMarker = Marker(
+      markerId: MarkerId("destination"),
+      position: destinationLatLng!,
+      infoWindow: InfoWindow(title: "Destination"),
+      icon: flagIcon, // Use the flag icon
+    );
+
+    setState(() {
+      markerSet.add(destinationMarker);
+    });
+  }
+
+  // Function to load the custom icons
+  void _loadCustomIcons() async {
+    customIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(size: Size(30, 30)),
+      'images/driver_location.png',
+    );
+
+    flagIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(size: Size(30, 30)),
+      'images/destination.png',
+    );
+
+    _addDestinationMarker(); 
   }
 
   void _startLocationUpdates() {
-    _positionStreamSubscription = Geolocator.getPositionStream(
-    ).listen((Position position) {
+    _positionStreamSubscription = Geolocator.getPositionStream().listen((Position position) {
       LatLng userLatLng = LatLng(position.latitude, position.longitude);
-      print("User Location: ${userLatLng.latitude}, ${userLatLng.longitude}"); // Debugging line
+      print("User Location: ${userLatLng.latitude}, ${userLatLng.longitude}"); 
       _updateMap(userLatLng);
-      _drawPolyline(userLatLng, destinationLatLng);
-      _calculateDistance(userLatLng, destinationLatLng);
-      _locationService.updateDriverLocation(driverId, position);
+      _drawPolyline(userLatLng, destinationLatLng!);
+      _calculateDistance(userLatLng, destinationLatLng!);
+      _updateDriverLocationInDatabase(userLatLng);
     });
   }
 
   void _updateMap(LatLng userLatLng) async {
-    CameraPosition cameraPosition = CameraPosition(
-      target: userLatLng,
-      zoom: 12,
-    );
+    if (newGoogleMapController != null) {
+      CameraPosition cameraPosition = CameraPosition(
+        target: userLatLng,
+        zoom: 12,
+      );
 
-    newGoogleMapController!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+      newGoogleMapController!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
 
-    Marker currentLocationMarker = Marker(
-      markerId: MarkerId("currentLocation"),
-      position: userLatLng,
-      infoWindow: InfoWindow(title: "Current Location"),
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-    );
+      Marker currentLocationMarker = Marker(
+        markerId: MarkerId("currentLocation"),
+        position: userLatLng,
+        infoWindow: InfoWindow(title: "Current Location"),
+        icon: customIcon, // Use the custom icon for the current location
+      );
 
-    setState(() {
-      markerSet.removeWhere((marker) => marker.markerId.value == "currentLocation");
-      markerSet.add(currentLocationMarker);
+      setState(() {
+        markerSet.removeWhere((marker) => marker.markerId.value == "currentLocation");
+        markerSet.add(currentLocationMarker);
+      });
+    }
+  }
+
+  void _updateDriverLocationInDatabase(LatLng driverLatLng) async {
+    String driverId = currentUser!.uid;
+    DatabaseReference driverLocationRef = FirebaseDatabase.instance
+        .ref()
+        .child('drivers')
+        .child(driverId)
+        .child('location');
+
+    await driverLocationRef.set({
+      'latitude': driverLatLng.latitude,
+      'longitude': driverLatLng.longitude,
     });
   }
 
@@ -129,17 +164,33 @@ class _TripStartedState extends State<TripStarted> {
     );
 
     setState(() {
-      distanceToDestination = distanceInMeters/1000;
+      distanceToDestination = distanceInMeters / 1000;
     });
 
-    if (distanceInMeters <= 100) {
+    if (distanceInMeters <= 100 && !hasTriggeredNearDestination) {
+      hasTriggeredNearDestination = true;
       _onNearDestination();
     }
   }
 
   void _onNearDestination() {
-    // Trigger your function here
-    print("You are within 100 meters of the destination!");
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("You are near the destination"),
+          content: Text("You are within 100 meters of the destination"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -155,6 +206,72 @@ class _TripStartedState extends State<TripStarted> {
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
+        key: _scaffoldKey,  
+        appBar: AppBar(
+          title: Text(
+            "Trip Started",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          
+          backgroundColor: Colors.blueAccent,
+          leading: IconButton(
+            icon: Icon(Icons.menu),
+            onPressed: () {
+              _scaffoldKey.currentState!.openDrawer(); // Open drawer
+            },
+          ),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.info_outline),
+              onPressed: () {
+                // Handle info icon tap
+              },
+            ),
+          ],
+        ),
+        drawer: Drawer(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                ),
+                child: Text(
+                  'Ride Details',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                  ),
+                ),
+              ),
+              ListTile(
+                title: Text('User Name: ${widget.userRideRequestDetails?.userName ?? "N/A"}'),
+              ),
+              ListTile(
+                title: Text('User Phone: ${widget.userRideRequestDetails?.userPhone ?? "N/A"}'),
+              ),
+              ListTile(
+                title: Text('Origin Address: ${widget.userRideRequestDetails?.originAddress ?? "N/A"}'),
+              ),
+              ListTile(
+                title: Text('Destination Address: ${widget.userRideRequestDetails?.destinationAddress ?? "N/A"}'),
+              ),
+              ListTile(
+                title: Text('Service Type: ${widget.userRideRequestDetails?.serviceType ?? "N/A"}'),
+              ),
+              ListTile(
+                title: Text('Capacity: ${widget.userRideRequestDetails?.capacity ?? "N/A"}'),
+              ),
+              ListTile(
+                title: Text('Weight: ${widget.userRideRequestDetails?.weight ?? "N/A"}'),
+              ),
+              ListTile(
+                title: Text('Instructions: ${widget.userRideRequestDetails?.instructions ?? "N/A"}'),
+              ),
+            ],
+          ),
+        ),
         body: Stack(
           children: [
             GoogleMap(
@@ -167,7 +284,9 @@ class _TripStartedState extends State<TripStarted> {
               markers: markerSet,
               circles: circleSet,
               onMapCreated: (GoogleMapController controller) {
-                _controllerGoogleMap.complete(controller);
+                if (!_controllerGoogleMap.isCompleted) {
+                  _controllerGoogleMap.complete(controller);
+                }
                 newGoogleMapController = controller;
 
                 setState(() {
@@ -175,6 +294,7 @@ class _TripStartedState extends State<TripStarted> {
                 });
               },
             ),
+            
             Positioned(
               bottom: 10 + bottomPaddingOfMap,
               left: 10,
@@ -182,7 +302,7 @@ class _TripStartedState extends State<TripStarted> {
                 color: Colors.white,
                 padding: EdgeInsets.all(10),
                 child: Text(
-                  "Distance : ${distanceToDestination.toStringAsFixed(2)} km",
+                  "Distance to PickUp : ${distanceToDestination.toStringAsFixed(2)} km",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

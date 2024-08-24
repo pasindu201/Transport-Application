@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:users/driver_global/global.dart';
 import 'package:users/driver_screens/pick_up.dart';
 import './../driver_models/user_ride_request_information.dart';
 import './../driver_global/map_key.dart';
 import 'trip_started.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class NewTripScreen extends StatefulWidget {
   final UserRideRequestInformation? userRideRequestDetails;
@@ -36,27 +38,26 @@ class _NewTripScreenState extends State<NewTripScreen> {
 
   late StreamSubscription<Position> _positionStreamSubscription;
 
-  // Hardcoded destination latitude and longitude for Colombo
-  late LatLng destinationLatLng = widget.userRideRequestDetails?.originLatLng ?? LatLng(0.0, 0.0); 
-
   // To store the distance
   double distanceToDestination = 0;
 
   bool hasTriggeredNearDestination = false;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); 
+  LatLng? pickupLatLng;
 
   @override
   void initState() {
     super.initState();
     _loadCustomIcons(); 
     _startLocationUpdates();
+    pickupLatLng = widget.userRideRequestDetails?.originLatLng;
   }
 
   void _addDestinationMarker() {
     Marker destinationMarker = Marker(
       markerId: MarkerId("destination"),
-      position: destinationLatLng,
+      position: pickupLatLng!,
       infoWindow: InfoWindow(title: "Destination"),
       icon: flagIcon, // Use the flag icon
     );
@@ -78,7 +79,7 @@ class _NewTripScreenState extends State<NewTripScreen> {
       'images/destination.png',
     );
 
-    _addDestinationMarker(); // Add the destination marker once icons are loaded
+    _addDestinationMarker(); 
   }
 
   void _startLocationUpdates() {
@@ -86,8 +87,9 @@ class _NewTripScreenState extends State<NewTripScreen> {
       LatLng userLatLng = LatLng(position.latitude, position.longitude);
       print("User Location: ${userLatLng.latitude}, ${userLatLng.longitude}"); 
       _updateMap(userLatLng);
-      _drawPolyline(userLatLng, destinationLatLng);
-      _calculateDistance(userLatLng, destinationLatLng);
+      _drawPolyline(userLatLng, pickupLatLng!);
+      _calculateDistance(userLatLng, pickupLatLng!);
+      _updateDriverLocationInDatabase(userLatLng);
     });
   }
 
@@ -112,6 +114,20 @@ class _NewTripScreenState extends State<NewTripScreen> {
         markerSet.add(currentLocationMarker);
       });
     }
+  }
+
+  void _updateDriverLocationInDatabase(LatLng driverLatLng) async {
+    String driverId = currentUser!.uid;
+    DatabaseReference driverLocationRef = FirebaseDatabase.instance
+        .ref()
+        .child('drivers')
+        .child(driverId)
+        .child('location');
+
+    await driverLocationRef.set({
+      'latitude': driverLatLng.latitude,
+      'longitude': driverLatLng.longitude,
+    });
   }
 
   void _drawPolyline(LatLng startLatLng, LatLng endLatLng) async {
@@ -174,7 +190,7 @@ class _NewTripScreenState extends State<NewTripScreen> {
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
-        key: _scaffoldKey,  // Assign the key to the Scaffold
+        key: _scaffoldKey,  
         appBar: AppBar(
           title: Text(
             "On the way to pick up",
