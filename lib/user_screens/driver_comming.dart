@@ -54,6 +54,8 @@ class _DriverComingState extends State<DriverComing> {
   Set<Marker> _markers = {};
   Set<Polyline> polylineSet = {};
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); 
+
   @override
   void initState() {
     super.initState();
@@ -294,6 +296,7 @@ class _DriverComingState extends State<DriverComing> {
             TextButton(
               child: Text("Start Trip"),
               onPressed: () {
+                Navigator.of(context).pop();
                 _acceptDriver();
               },
             ),
@@ -313,17 +316,29 @@ class _DriverComingState extends State<DriverComing> {
   Widget build(BuildContext context) {
     bool darkTheme = MediaQuery.of(context).platformBrightness == Brightness.dark;
     return Scaffold(
+      key: _scaffoldKey, 
       appBar: AppBar(
-        title: Text('Driver Coming'),
-        actions: [
-          IconButton(
+          title: Text(
+            "On the way to pick up",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          
+          backgroundColor: Colors.blueAccent,
+          leading: IconButton(
             icon: Icon(Icons.menu),
             onPressed: () {
-              Scaffold.of(context).openDrawer();
+              _scaffoldKey.currentState!.openDrawer(); // Open drawer
             },
           ),
-        ],
-      ),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.info_outline),
+              onPressed: () {
+                // Handle info icon tap
+              },
+            ),
+          ],
+        ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,

@@ -22,4 +22,6 @@ StreamSubscription<Position>? streamSubscriptionDriverLivePosition;
 
 AssetsAudioPlayer audioPlayer = AssetsAudioPlayer();
 
+bool? isDriverAvailable;
+
 

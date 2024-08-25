@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../driver_global/global.dart';
+import 'home_screen.dart';
 
 class RatingsPage extends StatefulWidget {
   final String driverId;
@@ -33,6 +34,7 @@ class _RatingsPageState extends State<RatingsPage> {
       "destination": widget.destinationAddress ?? 'Unknown destination address',
     }).then((_) {
       Navigator.pop(context);
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => UserHomePage()));
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text("Rating submitted!")));
     }).catchError((error) {

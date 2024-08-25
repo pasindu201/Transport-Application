@@ -1,126 +1,85 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../driver_global/global.dart';
+import '../driver_models/ratings.dart';
 
-class RatingsPage extends StatefulWidget {
-  const RatingsPage({super.key});
+class DriverRatingsPage extends StatefulWidget {
+  const DriverRatingsPage({Key? key}) : super(key: key);
 
   @override
-  State<RatingsPage> createState() => _RatingsPageState();
+  State<DriverRatingsPage> createState() => _DriverRatingsPageState();
 }
 
-class _RatingsPageState extends State<RatingsPage> {
-  double _selectedRating = 0.0;
+class _DriverRatingsPageState extends State<DriverRatingsPage> {
+  
+  String driverId = firebaseAuth.currentUser!.uid;
+  List<Ratings> ratingsList = [];
 
-  void _submitRating() {
-    DatabaseReference ratingRef = FirebaseDatabase.instance
-        .ref()
-        .child("driver_ratings")
-        .child(onlineDriverData.id!);
+  void _getRatings(Function(List<Ratings>) onRatingsFetched) async {
+    DatabaseReference ratingRef = FirebaseDatabase.instance.ref().child("driver_ratings");
 
-    ratingRef.set({
-      "rating": _selectedRating,
-      "pickUp": 'Sample pickup address', // Replace with actual pickup address
-      "destination": 'Sample destination address' // Replace with actual destination address
-    }).then((_) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Rating submitted!")));
-    }).catchError((error) {
-      print("Error submitting rating: $error");
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to submit rating")));
+    // Fetch the ratings data once
+    ratingRef.once().then((DatabaseEvent event) {
+      if (event.snapshot.exists) {
+        Map<dynamic, dynamic> ratingsMap = event.snapshot.value as Map<dynamic, dynamic>;
+
+        // Filter ratings by driverId
+        ratingsMap.forEach((key, value) {
+          if (key == driverId) {
+            Ratings rating = Ratings.fromMap(value);
+            ratingsList.add(rating);
+          }
+        });
+      }
+      // Pass the filtered list to the callback function
+      onRatingsFetched(ratingsList);
     });
   }
 
-  Widget _buildStar(int index) {
-    return IconButton(
-      icon: Icon(
-        Icons.star,
-        color: index <= _selectedRating ? Colors.amber : Colors.grey,
-        size: 40,
-      ),
-      onPressed: () {
-        setState(() {
-          _selectedRating = index.toDouble();
-        });
-      },
-    );
+  @override
+  void initState() {
+    super.initState();
+    _getRatings((List<Ratings> ratings) {
+      setState(() {
+        ratingsList = ratings;
+      });
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Rate Driver'),
-        backgroundColor: Colors.blueAccent,
+        title: const Text("Driver Ratings"),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            // Header section
-            Text(
-              'Tuesday, 23 Mar, 14:10',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-            SizedBox(height: 4),
-            Text(
-              'Order F-1169872841',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            
-            // Status section
-            Text(
-              'Food delivered',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-
-            // Rating stars
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (index) => _buildStar(index + 1)),
-            ),
-            SizedBox(height: 20),
-
-            // Tip section
-            Text(
-              'Do you want to tip the driver?',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            GridView.count(
-              crossAxisCount: 3,
-              shrinkWrap: true,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-              children: [
-                'Rp1.000', 'Rp2.500', 'Rp5.000', 'Rp10.000', 'Rp15.000', 'Rp20.000',
-                'Rp30.000', 'Rp50.000', 'Rp80.000', 'Rp100.000'
-              ].map((tip) {
-                return OutlinedButton(
-                  child: Text(tip),
-                  onPressed: () {
-                    // Implement your tip handling logic here
-                  },
+      body: ratingsList.isEmpty
+          ? const Center(
+              child: Text("No ratings found"),
+            )
+          : ListView.builder(
+              itemCount: ratingsList.length,
+              itemBuilder: (context, index) {
+                var rating = ratingsList[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.blue,
+                      child: Text(
+                        rating.rating ?? "-",
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    title: Text('From: ${rating.pickUp ?? 'Unknown'}'),
+                    subtitle: Text('To: ${rating.destination ?? 'Unknown'}'),
+                    trailing: Text(
+                      'Rating: ${rating.rating ?? 'N/A'}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 );
-              }).toList(),
+              },
             ),
-            SizedBox(height: 20),
-
-            // Submit button
-            Center(
-              child: ElevatedButton(
-                child: Text('Submit'),
-                onPressed: _submitRating,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

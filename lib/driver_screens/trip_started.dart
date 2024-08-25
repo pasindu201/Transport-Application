@@ -51,7 +51,7 @@ class _TripStartedState extends State<TripStarted> {
     super.initState();
     _loadCustomIcons(); 
     _startLocationUpdates();
-    destinationLatLng = widget.userRideRequestDetails?.originLatLng;
+    destinationLatLng = widget.userRideRequestDetails?.destinationLatLng;
   }
 
   void _addDestinationMarker() {
@@ -302,7 +302,7 @@ class _TripStartedState extends State<TripStarted> {
                 color: Colors.white,
                 padding: EdgeInsets.all(10),
                 child: Text(
-                  "Distance to PickUp : ${distanceToDestination.toStringAsFixed(2)} km",
+                  "Distance to Destination : ${distanceToDestination.toStringAsFixed(2)} km",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

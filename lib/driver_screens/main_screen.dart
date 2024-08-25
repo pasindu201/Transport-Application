@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../driver_global/global.dart';
 import '../driver_tab_pages/home.dart';
 import '../driver_tab_pages/profile.dart';
 import '../driver_tab_pages/ratings.dart'; // Add your Earnings page
@@ -15,6 +16,12 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
   int _bottomBarIndex = 0;
   bool _isPageTwoLocked = false;
   final int _activateTime = 2000; // Lock duration in milliseconds
+
+  @override
+  void initState() {
+    super.initState();
+    isDriverAvailable = true;
+  }
 
   void _onItemTapped(int index) {
     if (_isPageTwoLocked && index == 1) {
@@ -44,7 +51,7 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
         index: _bottomBarIndex,
         children: [
           HomeTabPage(key: PageStorageKey('home')),
-          RatingsPage(key: PageStorageKey('ratings')), // Your Earnings page
+          DriverRatingsPage(key: PageStorageKey('ratings')), // Your Earnings page
           NotificationsTabPage(key: PageStorageKey('notifications')), // Your Notifications page
           DriverProfilePage(key: PageStorageKey('profile')),
         ],
@@ -64,7 +71,7 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
               label: 'Home',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.location_on),
+              icon: Icon(Icons.credit_card),
               label: 'Ratings', 
             ),
             BottomNavigationBarItem(

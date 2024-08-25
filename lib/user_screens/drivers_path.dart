@@ -42,11 +42,13 @@ class _DriverPathState extends State<DriverPath> {
   String? serviceType;
   String? time;
 
-  BitmapDescriptor? _pickupIcon;
+  BitmapDescriptor? _destinationIcon;
   BitmapDescriptor? _driverIcon;
 
   final Completer<GoogleMapController> _controllerGoogleMap = Completer<GoogleMapController>();
   GoogleMapController? newGoogleMapController;
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); 
 
   static final CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(6.927079, 79.861244),
@@ -91,27 +93,23 @@ class _DriverPathState extends State<DriverPath> {
     }
   }
 
-  void _locatePickUp() {
-    if (pickUpLocationLatLng != null && _pickupIcon != null) {
-      Marker pickUpMarker = Marker(
-        markerId: MarkerId("pickUpMarker"),
-        position: pickUpLocationLatLng!,
-        infoWindow: InfoWindow(title: "Pickup Location"),
-        icon: _pickupIcon!,
-      );
+  void _locateDestination() {
+    Marker destinationMarker = Marker(
+      markerId: MarkerId("destinationMarker"),
+      position: destinationLocationLatLng!,
+      infoWindow: InfoWindow(title: "destination Location"),
+      icon: _destinationIcon!,
+    );
 
-      setState(() {
-        _markers.removeWhere((marker) => marker.markerId.value == "pickUpMarker");
-        _markers.add(pickUpMarker);
-      });
-    } else {
-      print("Pick-up location or icon not initialized.");
-    }
+    setState(() {
+      _markers.removeWhere((marker) => marker.markerId.value == "destinationMarker");
+      _markers.add(destinationMarker);
+    });
   }
 
   void _loadCustomIcons() async {
     try {
-      _pickupIcon = await BitmapDescriptor.fromAssetImage(
+      _destinationIcon = await BitmapDescriptor.fromAssetImage(
         ImageConfiguration(size: Size(48, 48)), 
         'images/destination.png',
       );
@@ -123,7 +121,7 @@ class _DriverPathState extends State<DriverPath> {
 
       // Locate the pickup marker only after the icons are loaded
       if (pickUpLocationLatLng != null) {
-        _locatePickUp();
+        _locateDestination();
       }
     } catch (e) {
       print("Error loading icons: $e");
@@ -158,8 +156,7 @@ class _DriverPathState extends State<DriverPath> {
             double.parse(data['destination']['longitude'].toString())
           );
 
-          // After setting the pickup location, add the marker
-          _locatePickUp();
+          _locateDestination();
         });
       }
     }).catchError((error) {
@@ -242,7 +239,7 @@ class _DriverPathState extends State<DriverPath> {
         _drawPolyline(driverPosition, destinationLocationLatLng!);
         
         if (pickUpLocationLatLng != null) {
-          double distanceToPickUp = Geolocator.distanceBetween(
+          double distanceToDestination = Geolocator.distanceBetween(
             driverPosition.latitude,
             driverPosition.longitude,
             destinationLocationLatLng!.latitude,
@@ -250,14 +247,13 @@ class _DriverPathState extends State<DriverPath> {
           );
 
           // Check if the driver is within 100 meters of the pickup location
-          if (distanceToPickUp <= 100) {
+          if (distanceToDestination <= 100) {
             _showTripComplete();
           }
 
           if (newGoogleMapController != null) {
             CameraPosition cameraPosition = CameraPosition(
-              target: driverPosition, 
-              zoom: 14.0,             
+              target: driverPosition,            
             );
 
             newGoogleMapController!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition)); 
@@ -296,6 +292,7 @@ class _DriverPathState extends State<DriverPath> {
             TextButton(
               child: Text("Ok"),
               onPressed: () {
+                Navigator.pop(context);Navigator.pop(context);
                 Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => RatingsPage(
                   driverId: widget.driverId,
                   pickUpAddress: pickUpAddress,
@@ -313,17 +310,29 @@ class _DriverPathState extends State<DriverPath> {
   Widget build(BuildContext context) {
     bool darkTheme = MediaQuery.of(context).platformBrightness == Brightness.dark;
     return Scaffold(
+      key: _scaffoldKey, 
       appBar: AppBar(
-        title: Text('Driver Coming'),
-        actions: [
-          IconButton(
+          title: Text(
+            "On the way to destination",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          
+          backgroundColor: Colors.blueAccent,
+          leading: IconButton(
             icon: Icon(Icons.menu),
             onPressed: () {
-              Scaffold.of(context).openDrawer();
+              _scaffoldKey.currentState!.openDrawer(); // Open drawer
             },
           ),
-        ],
-      ),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.info_outline),
+              onPressed: () {
+                // Handle info icon tap
+              },
+            ),
+          ],
+        ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -383,8 +392,7 @@ class _DriverPathState extends State<DriverPath> {
               _controllerGoogleMap.complete(controller);
               newGoogleMapController = controller;
 
-              // Locate the pickup location on map creation
-              _locatePickUp();
+              _locateDestination();
             },
           ),
         ],

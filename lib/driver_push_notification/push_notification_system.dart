@@ -78,8 +78,11 @@ class PushNotificationSystem{
             userRideRequestDetails.instructions = instructions;
 
             userRideRequestDetails.rideRequestId = rideRequestId;
-
-            showSimpleDialog(userRideRequestDetails, context);
+            
+            if(isDriverAvailable == true){
+              showSimpleDialog(userRideRequestDetails, context);
+            }
+            
           }
           else {
             Fluttertoast.showToast(msg: "This Ride request do not exist");

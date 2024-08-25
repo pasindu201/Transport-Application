@@ -11,6 +11,7 @@ class NotificationsTabPage extends StatefulWidget {
 
 class _NotificationsTabPageState extends State<NotificationsTabPage> {
   List<Map<String, dynamic>> notifications = [];
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -18,29 +19,40 @@ class _NotificationsTabPageState extends State<NotificationsTabPage> {
     _fetchNotifications();
   }
 
-  void _fetchNotifications() {
+  void _fetchNotifications() async {
     DatabaseReference notificationsRef = FirebaseDatabase.instance.ref().child("All Ride Requests");
-    
-    notificationsRef.once().then((DatabaseEvent event) {
+
+    try {
+      DatabaseEvent event = await notificationsRef.once();
       Map<dynamic, dynamic>? data = event.snapshot.value as Map<dynamic, dynamic>?;
+
       if (data != null) {
-        data.forEach((key, value) {
-          setState(() {
+        setState(() {
+          notifications.clear();
+          data.forEach((key, value) {
             notifications.add({
               "id": key,
-              "userName": value['userName'],
-              "originAddress": value['originAddress'],
-              "destinationAddress": value['destinationAddress'],
-              "time": value['time'],
-              "serviceType": value['serviceType'],
-              "capacity": value['capacity'],
-              "weight": value['weight'],
-              "instructions": value['instructions'],
+              "userName": value['userName'] ?? 'Unknown',
+              "originAddress": value['originAddress'] ?? 'Unknown',
+              "destinationAddress": value['destinationAddress'] ?? 'Unknown',
+              "time": value['time'] ?? DateTime.now().toIso8601String(),
+              "serviceType": value['serviceType'] ?? 'N/A',
+              "capacity": value['capacity'] ?? 'N/A',
+              "weight": value['weight'] ?? 'N/A',
+              "instructions": value['instructions'] ?? 'No instructions provided',
             });
           });
         });
       }
-    });
+    } catch (error) {
+      print("Error fetching notifications: $error");
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to load notifications")));
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   void _showNotificationDetails(Map<String, dynamic> notification) {
@@ -56,7 +68,7 @@ class _NotificationsTabPageState extends State<NotificationsTabPage> {
               Text("User Name: ${notification['userName']}"),
               Text("Origin: ${notification['originAddress']}"),
               Text("Destination: ${notification['destinationAddress']}"),
-              Text("Time: ${notification['time']}"),
+              Text("Time: ${_formatTime(notification['time'])}"),
               Text("Service Type: ${notification['serviceType']}"),
               Text("Capacity: ${notification['capacity']}"),
               Text("Weight: ${notification['weight']}"),
@@ -88,25 +100,27 @@ class _NotificationsTabPageState extends State<NotificationsTabPage> {
         title: Text("Notifications"),
         backgroundColor: Colors.blue,
       ),
-      body: notifications.isEmpty
+      body: isLoading
           ? Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: notifications.length,
-              itemBuilder: (context, index) {
-                var notification = notifications[index];
-                return Card(
-                  elevation: 4,
-                  margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                  child: ListTile(
-                    leading: Icon(Icons.notifications, color: Colors.blue),
-                    title: Text(notification['originAddress'] ?? 'Unknown'),
-                    subtitle: Text(_formatTime(notification['time'])),
-                    trailing: Icon(Icons.arrow_forward_ios),
-                    onTap: () => _showNotificationDetails(notification),
-                  ),
-                );
-              },
-            ),
+          : notifications.isEmpty
+              ? Center(child: Text("No notifications available"))
+              : ListView.builder(
+                  itemCount: notifications.length,
+                  itemBuilder: (context, index) {
+                    var notification = notifications[index];
+                    return Card(
+                      elevation: 4,
+                      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      child: ListTile(
+                        leading: Icon(Icons.notifications, color: Colors.blue),
+                        title: Text(notification['originAddress']),
+                        subtitle: Text(_formatTime(notification['time'])),
+                        trailing: Icon(Icons.arrow_forward_ios),
+                        onTap: () => _showNotificationDetails(notification),
+                      ),
+                    );
+                  },
+                ),
     );
   }
 }

@@ -17,6 +17,7 @@ void updateDriverLocation(String driverId) {
 }
 
 acceptRideRequest(UserRideRequestInformation userRideRequestDetails, BuildContext context){
+  isDriverAvailable = false;
   updateDriverLocation(firebaseAuth.currentUser!.uid);
   FirebaseDatabase.instance.ref().child("drivers").child(firebaseAuth.currentUser!.uid).child("newRideStatus").set("accepted");
   FirebaseDatabase.instance.ref().child("All Ride Requests").child(userRideRequestDetails.rideRequestId!).child("driverId").set(firebaseAuth.currentUser!.uid);
@@ -151,6 +152,7 @@ void showSimpleDialog(UserRideRequestInformation userRideRequestDetails, BuildCo
         actions: [
           TextButton(
             onPressed: () {
+              Navigator.of(context).pop();
               acceptRideRequest(userRideRequestDetails, context);
             },
             style: TextButton.styleFrom(
