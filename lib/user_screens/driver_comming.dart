@@ -46,6 +46,8 @@ class _DriverComingState extends State<DriverComing> {
   final Completer<GoogleMapController> _controllerGoogleMap = Completer<GoogleMapController>();
   GoogleMapController? newGoogleMapController;
 
+  bool _hasShownDriverArrivedDialog = false;
+
   static final CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(37.42796133580664, -122.085749655962),
     zoom: 14,
@@ -286,31 +288,37 @@ class _DriverComingState extends State<DriverComing> {
   }
 
   void _showDriverArrivedDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Driver has arrived"),
-          content: Text("Your driver has arrived at the pickup location."),
-          actions: [
-            TextButton(
-              child: Text("Start Trip"),
-              onPressed: () {
-                Navigator.of(context).pop();
-                _acceptDriver();
-              },
-            ),
-            TextButton(
-              child: Text("Cancel"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
+    if (!_hasShownDriverArrivedDialog) {
+      setState(() {
+        _hasShownDriverArrivedDialog = true; // Set the flag to true
+      });
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Driver has arrived"),
+            content: Text("Your driver has arrived at the pickup location."),
+            actions: [
+              TextButton(
+                child: Text("Start Trip"),
+                onPressed: () {
+                  _acceptDriver();
+                },
+              ),
+              TextButton(
+                child: Text("Cancel"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
+
 
   @override
   Widget build(BuildContext context) {

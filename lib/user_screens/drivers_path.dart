@@ -253,7 +253,8 @@ class _DriverPathState extends State<DriverPath> {
 
           if (newGoogleMapController != null) {
             CameraPosition cameraPosition = CameraPosition(
-              target: driverPosition,            
+              target: driverPosition,       
+              zoom:14.0   
             );
 
             newGoogleMapController!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition)); 
